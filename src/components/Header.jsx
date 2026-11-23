@@ -1,106 +1,363 @@
-import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Button, Drawer, Badge } from 'antd'
-import { Menu } from 'lucide-react'
-import { Icon3d } from './IconTile'
+import { useState } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Badge, Drawer, Dropdown, Button, Collapse } from 'antd'
+import { Menu, MapPin, User, Heart, ShoppingCart, Package, ChevronDown, LayoutGrid, Phone, Headphones, Truck, FileText, ArrowRight, Tag, Sparkles, SlidersHorizontal } from 'lucide-react'
 import Logo from './Logo'
-import { navLinks, company } from '../data/content'
+import SearchBox from './shop/SearchBox'
+import FilterDrawer from './shop/FilterDrawer'
+import ProductImage from './shop/ProductImage'
+import { groups, products } from '../data/shop'
+import { company } from '../data/content'
 import { useQuote } from './quoteContext'
+import { useShop } from '../store/shopContext'
+import { inr, summarize } from '../utils/pricing'
+
+const announcements = [
+  'Festive Sale is live: up to 40% off on bathroom products',
+  'Free shipping on orders above ₹999 · Cash on delivery available',
+  'Use code WELCOME10 for 10% off on your first order',
+]
+
+const topProducts = (group) => products.filter((p) => p.group === group).sort((a, b) => b.sold - a.sold).slice(0, 3)
+
+function IconAction({ to, onClick, icon: Icon, label, count, sub }) {
+  const inner = (
+    <>
+      <Badge count={count} size="small" color="#0FAFBF" offset={[-2, 2]}>
+        <Icon size={23} strokeWidth={1.7} className="text-heading" />
+      </Badge>
+      <span className="hidden leading-tight xl:block">
+        <span className="block text-[11px] text-body">{sub}</span>
+        <span className="block text-[13px] font-bold text-heading">{label}</span>
+      </span>
+    </>
+  )
+  const cls = 'flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-light cursor-pointer'
+  return to ? (
+    <Link to={to} className={cls} aria-label={label}>
+      {inner}
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} className={cls} aria-label={label}>
+      {inner}
+    </button>
+  )
+}
+
+function GroupPanel({ g, onPick }) {
+  return (
+    <div className="grid grid-cols-12 gap-6 p-6">
+      <div className="col-span-3">
+        <Link to={`/products?group=${g.key}`} onClick={onPick} className="group block overflow-hidden rounded-xl bg-light">
+          <ProductImage p={g} width={500} className="aspect-[4/3]" imgClassName="transition-transform duration-500 group-hover:scale-105" />
+          <div className="p-4">
+            <p className="font-bold text-heading">{g.label}</p>
+            <p className="mt-0.5 text-[13px]">{g.text}</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold text-primary-dark">
+              View all <ArrowRight size={14} />
+            </span>
+          </div>
+        </Link>
+      </div>
+      <div className="col-span-6">
+        <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-heading">Shop by type</p>
+        <div className="grid grid-cols-3 gap-3">
+          {g.subs.map((s) => (
+            <Link key={s.key} to={`/products?cat=${s.key}`} onClick={onPick} className="group text-center">
+              <ProductImage p={s} width={240} className="mx-auto aspect-square w-full max-w-[120px] rounded-xl ring-1 ring-line" imgClassName="transition-transform duration-500 group-hover:scale-110" />
+              <span className="mt-2 block text-[13px] font-semibold leading-snug text-heading group-hover:text-primary-dark">{s.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+      <div className="col-span-3 border-l border-line pl-6">
+        <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-heading">Best sellers</p>
+        <ul className="m-0 list-none space-y-3 p-0">
+          {topProducts(g.key).map((p) => (
+            <li key={p.id}>
+              <Link to={`/product/${p.id}`} onClick={onPick} className="flex items-center gap-3 hover:text-primary-dark">
+                <ProductImage p={p} width={120} className="h-14 w-14 shrink-0 rounded-lg ring-1 ring-line" />
+                <span className="min-w-0">
+                  <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-heading">{p.name}</span>
+                  <span className="text-[13px] font-bold text-heading">{inr(p.price)}</span> <s className="text-xs text-muted">{inr(p.mrp)}</s>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function AllCategoriesPanel({ onPick }) {
+  const [active, setActive] = useState(groups[0].key)
+  const g = groups.find((x) => x.key === active)
+  return (
+    <div className="flex min-h-[380px]">
+      <ul className="m-0 w-[270px] shrink-0 list-none border-r border-[#eee] bg-soft p-0">
+        {groups.map((x) => (
+          <li key={x.key}>
+            <Link
+              to={`/products?group=${x.key}`}
+              onClick={onPick}
+              onMouseEnter={() => setActive(x.key)}
+              onFocus={() => setActive(x.key)}
+              className={`flex items-center justify-between border-b border-l-[3px] border-b-[#f0f0f0] px-5 py-4 font-bold transition-all ${
+                active === x.key ? 'border-l-primary bg-white text-primary-dark' : 'border-l-transparent text-[#333]'
+              }`}
+            >
+              {x.label}
+              <ArrowRight size={16} className="text-[#ccc]" />
+            </Link>
+          </li>
+        ))}
+        <li>
+          <Link to="/offers" onClick={onPick} className="flex items-center gap-2 border-l-[3px] border-l-transparent px-5 py-4 font-bold text-accent">
+            <Tag size={16} /> Offers
+          </Link>
+        </li>
+      </ul>
+      <div className="flex-1">
+        <GroupPanel g={g} onPick={onPick} />
+      </div>
+    </div>
+  )
+}
 
 export default function Header() {
-  const [open, setOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const { count, openQuote } = useQuote()
+  const navigate = useNavigate()
+  const { pathname, search, key } = useLocation()
+  // The drawer belongs to the page it was opened on, so it closes by itself after navigation
+  const [openKey, setOpenKey] = useState(null)
+  const open = openKey === key
+  const setOpen = (v) => setOpenKey(v ? key : null)
+  const [megaOff, setMegaOff] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { count: quoteCount, openQuote } = useQuote()
+  const { cartRows, cartCount, wishlist, user, logout, pincode, openPincode } = useShop()
+  const cartTotal = summarize(cartRows).subtotal
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  // Close the hover menus after a link inside them is clicked
+  const pick = () => {
+    setMegaOff(true)
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+  }
 
-  const linkCls = ({ isActive }) =>
-    `relative px-3.5 py-2 rounded-lg text-[15px] font-bold transition-colors after:absolute after:left-3.5 after:right-3.5 after:-bottom-0.5 after:h-[2.5px] after:rounded-full after:bg-primary after:origin-left after:transition-transform after:duration-300 ${
-      isActive ? 'text-primary-dark after:scale-x-100' : 'text-dark hover:text-primary-dark after:scale-x-0 hover:after:scale-x-100'
-    }`
+  const accountItems = user
+    ? [
+        { key: 'hi', label: <span className="font-bold text-heading">Hi, {user.name?.split(' ')[0] || 'there'}</span>, disabled: true },
+        { type: 'divider' },
+        { key: '/orders', label: 'My orders', icon: <Package size={15} /> },
+        { key: '/wishlist', label: 'Wishlist', icon: <Heart size={15} /> },
+        { key: '/compare', label: 'Compare', icon: <LayoutGrid size={15} /> },
+        { key: '/track-order', label: 'Track order', icon: <Truck size={15} /> },
+        { type: 'divider' },
+        { key: 'logout', label: 'Log out', danger: true },
+      ]
+    : [
+        { key: '/login', label: <span className="font-bold">Login</span>, icon: <User size={15} /> },
+        { key: '/login?tab=signup', label: 'Create an account' },
+        { type: 'divider' },
+        { key: '/orders', label: 'My orders', icon: <Package size={15} /> },
+        { key: '/track-order', label: 'Track order', icon: <Truck size={15} /> },
+      ]
+
+  const onAccount = ({ key }) => (key === 'logout' ? logout() : navigate(key))
+
+  const navCls = ({ isActive }) =>
+    `flex shrink-0 items-center gap-1 whitespace-nowrap px-2.5 py-3 text-[14px] font-bold xl:px-3.5 transition-colors hover:text-primary-dark ${isActive ? 'text-primary-dark' : 'text-heading'}`
 
   return (
     <>
-      <div className="hidden md:block bg-secondary text-white/80 text-[13px]">
-        <div className="container-x flex items-center justify-center lg:justify-between h-8">
-          <p className="hidden lg:flex items-center gap-1.5">
-            <Icon3d name="location" size={16} /> Sahibabad, Ghaziabad &middot; Supplying luxury bath fittings across India
-          </p>
-          <div className="flex items-center gap-5">
-            <a href={`tel:${company.phoneRaw}`} className="flex items-center gap-1.5 hover:text-primary">
-              <Icon3d name="phone" size={16} /> {company.phone}
-            </a>
-            <a href={`mailto:${company.email}`} className="flex items-center gap-1.5 hover:text-primary">
-              <Icon3d name="email" size={16} /> {company.email}
-            </a>
+      {/* Announcement bar */}
+      <div className="bg-secondary text-[13px] text-white/85">
+        <div className="container-x flex h-9 items-center justify-between gap-4">
+          <div className="h-9 flex-1 overflow-hidden">
+            <div className="ticker">
+              {announcements.map((a) => (
+                <p key={a} className="flex h-9 items-center truncate">{a}</p>
+              ))}
+            </div>
+          </div>
+          <div className="hidden shrink-0 items-center gap-5 whitespace-nowrap md:flex">
+            <Link to="/hospitality" className="hover:text-primary xl:hidden">Hotels and Projects</Link>
+            <Link to="/about" className="hover:text-primary xl:hidden">About</Link>
+            <Link to="/contact" className="flex items-center gap-1.5 whitespace-nowrap hover:text-primary"><Headphones size={14} /> Customer Support</Link>
+            <Link to="/track-order" className="flex items-center gap-1.5 hover:text-primary"><Truck size={14} /> Track Order</Link>
+            <button type="button" onClick={openQuote} className="flex cursor-pointer items-center gap-1.5 hover:text-primary">
+              <FileText size={14} /> Bulk Quote{quoteCount ? ` (${quoteCount})` : ''}
+            </button>
+            <a href={`tel:${company.phoneRaw}`} className="flex items-center gap-1.5 font-bold text-white hover:text-primary"><Phone size={14} /> {company.phone}</a>
           </div>
         </div>
       </div>
 
-      <header
-        className={`sticky top-0 z-50 backdrop-blur-md transition-all duration-300 ${
-          scrolled ? 'bg-white/90 shadow-[0_10px_30px_-14px_rgba(9,44,76,.35)]' : 'bg-white border-b border-line'
-        }`}
-      >
-        <div className="container-x flex items-center justify-between h-16">
+      <header className="sticky top-0 z-50 bg-white shadow-[0_1px_0_#E5E5E5]">
+        {/* Main row */}
+        <div className="container-x flex h-[68px] items-center gap-3 lg:h-20 lg:gap-6">
+          <button type="button" className="-ml-1 grid h-10 w-10 cursor-pointer place-items-center rounded-lg hover:bg-light lg:hidden" aria-label="Open menu" onClick={() => setOpen(true)}>
+            <Menu size={24} />
+          </button>
           <Logo />
 
-          <nav className="hidden lg:flex items-center gap-0.5" aria-label="Main">
-            {navLinks.map((l) => (
-              <NavLink key={l.to} to={l.to} end={l.to === '/'} className={linkCls}>
-                {l.label}
-              </NavLink>
-            ))}
-          </nav>
+          <button type="button" onClick={openPincode} className="hidden shrink-0 cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-light xl:flex">
+            <MapPin size={22} strokeWidth={1.7} className="text-primary-dark" />
+            <span className="leading-tight">
+              <span className="block text-[11px] text-body">Deliver to</span>
+              <span className="block max-w-[120px] truncate text-[13px] font-bold text-heading">{pincode ? `${pincode.city} ${pincode.pincode}` : 'Enter pincode'}</span>
+            </span>
+          </button>
 
-          <div className="flex items-center gap-2">
-            <Badge count={count} color="#092C4C" offset={[-4, 4]}>
-              <Button onClick={openQuote} className="!font-bold !text-secondary !border-line hover:!border-primary" icon={<Icon3d name="document" size={20} />}>
-                <span className="hidden sm:inline">Quote List</span>
-              </Button>
-            </Badge>
-            <a href={`tel:${company.phoneRaw}`} className="hidden lg:block">
-              <Button type="primary" icon={<Icon3d name="phone" size={18} />}>
-                Call Now
-              </Button>
-            </a>
-            <Button
-              className="lg:!hidden"
-              type="text"
-              aria-label="Open menu"
-              icon={<Menu size={24} className="text-secondary" />}
-              onClick={() => setOpen(true)}
-            />
+          <SearchBox className="hidden flex-1 lg:block" />
+
+          <div className="ml-auto flex items-center gap-0.5 sm:gap-1 lg:ml-0">
+            <Dropdown menu={{ items: accountItems, onClick: onAccount }} trigger={['hover', 'click']} placement="bottomRight" rootClassName="min-w-[200px]">
+              <button type="button" className="hidden cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-light sm:flex" aria-label="Account">
+                <User size={23} strokeWidth={1.7} className="text-heading" />
+                <span className="hidden leading-tight xl:block">
+                  <span className="block text-left text-[11px] text-body">{user ? 'Hello' : 'Login / Signup'}</span>
+                  <span className="flex items-center gap-0.5 text-[13px] font-bold text-heading">
+                    {user ? user.name?.split(' ')[0] : 'My Account'} <ChevronDown size={13} />
+                  </span>
+                </span>
+              </button>
+            </Dropdown>
+            <span className="hidden md:block">
+              <IconAction to="/orders" icon={Package} label="Orders" sub="My" />
+            </span>
+            <IconAction to="/wishlist" icon={Heart} label="Wishlist" sub="My" count={wishlist.length} />
+            <IconAction to="/cart" icon={ShoppingCart} label={inr(cartTotal)} sub="Cart" count={cartCount} />
           </div>
         </div>
+
+        {/* Mobile search */}
+        <div className="container-x flex gap-2 pb-3 lg:hidden">
+          <SearchBox className="flex-1" />
+          <button type="button" onClick={() => setFiltersOpen(true)} aria-label="Open filters" className="flex h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-[10px] border border-line px-3 text-sm font-bold text-heading">
+            <SlidersHorizontal size={17} /> <span className="hidden sm:inline">Filters</span>
+          </button>
+        </div>
+
+        {/* Category navigation */}
+        <nav
+          aria-label="Categories"
+          onMouseLeave={() => setMegaOff(false)}
+          className={`relative hidden border-t border-line lg:block ${megaOff ? '[&_.mega-panel]:!hidden' : ''}`}
+        >
+          <div className="container-x flex items-center">
+            <div className="mega-trigger">
+              <button type="button" className="my-1.5 mr-2 flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-[14px] xl:mr-3 xl:px-4 font-bold text-white hover:bg-primary-dark">
+                <Menu size={17} /> All Categories <ChevronDown size={15} />
+              </button>
+              <div className="mega-panel absolute inset-x-0 top-full z-50">
+                <div className="container-x">
+                  <div className="overflow-hidden rounded-b-xl border border-t-0 border-[#f0f0f0] bg-white shadow-[0_20px_40px_-12px_rgba(0,0,0,.18)]">
+                    <AllCategoriesPanel onPick={pick} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {groups.map((g) => (
+              <div key={g.key} className="mega-trigger">
+                <NavLink to={`/products?group=${g.key}`} onClick={pick} className={() => navCls({ isActive: pathname === '/products' && search.includes(`group=${g.key}`) })}>
+                  {g.label} <ChevronDown size={14} className="text-body" />
+                </NavLink>
+                <div className="mega-panel absolute inset-x-0 top-full z-50">
+                  <div className="container-x">
+                    <div className="rounded-b-xl border border-t-0 border-[#f0f0f0] bg-white shadow-[0_20px_40px_-12px_rgba(0,0,0,.18)]">
+                      <GroupPanel g={g} onPick={pick} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <button type="button" onClick={() => setFiltersOpen(true)} className="flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap px-2.5 py-3 text-[14px] font-bold text-heading hover:text-primary-dark xl:px-3.5">
+              <SlidersHorizontal size={15} /> Filters
+            </button>
+
+            <NavLink to="/offers" className={({ isActive }) => `${navCls({ isActive })} !text-accent`}>
+              <Tag size={15} /> Offers
+            </NavLink>
+            <NavLink to="/new-arrivals" className={navCls}>
+              <Sparkles size={15} className="text-new" /> New Arrivals
+            </NavLink>
+
+            <div className="ml-auto hidden items-center xl:flex">
+              <NavLink to="/hospitality" className={navCls}>Hotels and Projects</NavLink>
+              <NavLink to="/about" className={navCls}>About</NavLink>
+            </div>
+          </div>
+        </nav>
       </header>
 
-      <Drawer open={open} onClose={() => setOpen(false)} placement="right" title={<Logo />} size={300}>
-        <nav className="flex flex-col" aria-label="Mobile">
-          {navLinks.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.to === '/'}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                `py-3 border-b border-line text-base font-semibold ${isActive ? 'text-primary-dark' : 'text-secondary'}`
-              }
-            >
-              {l.label}
+      <FilterDrawer open={filtersOpen} onClose={() => setFiltersOpen(false)} />
+
+      {/* Mobile menu */}
+      <Drawer open={open} onClose={() => setOpen(false)} placement="left" title={<Logo />} size={320} styles={{ body: { padding: 0 } }}>
+        <div className="border-b border-line bg-light p-4">
+          {user ? (
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-heading">Hi, {user.name}</p>
+              <Button size="small" onClick={logout}>Log out</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <Link to="/login"><Button type="primary" block>Login</Button></Link>
+              <Link to="/login?tab=signup"><Button block>Sign up</Button></Link>
+            </div>
+          )}
+          <button type="button" onClick={() => { setOpen(false); openPincode() }} className="mt-3 flex w-full cursor-pointer items-center gap-2 text-left text-sm font-semibold text-heading">
+            <MapPin size={17} className="text-primary-dark" /> {pincode ? `Deliver to ${pincode.city} ${pincode.pincode}` : 'Enter delivery pincode'}
+          </button>
+        </div>
+
+        <p className="px-4 pb-1 pt-4 text-xs font-extrabold uppercase tracking-wider text-body">Shop by category</p>
+        <Collapse
+          ghost
+          expandIconPlacement="end"
+          items={groups.map((g) => ({
+            key: g.key,
+            label: <span className="font-bold text-heading">{g.label}</span>,
+            children: (
+              <ul className="m-0 -mt-2 list-none space-y-0.5 p-0">
+                <li><Link to={`/products?group=${g.key}`} className="block py-1.5 text-sm font-bold text-primary-dark">View all {g.label}</Link></li>
+                {g.subs.map((s) => (
+                  <li key={s.key}><Link to={`/products?cat=${s.key}`} className="block py-1.5 text-sm text-heading">{s.label}</Link></li>
+                ))}
+              </ul>
+            ),
+          }))}
+        />
+
+        <nav className="flex flex-col border-t border-line px-4 py-2" aria-label="Mobile">
+          {[
+            ['/offers', 'Offers'],
+            ['/new-arrivals', 'New Arrivals'],
+            ['/orders', 'My Orders'],
+            ['/wishlist', 'Wishlist'],
+            ['/compare', 'Compare'],
+            ['/track-order', 'Track Order'],
+            ['/hospitality', 'Hotels and Projects'],
+            ['/about', 'About Us'],
+            ['/contact', 'Contact Us'],
+            ['/faq', 'FAQ'],
+          ].map(([to, label]) => (
+            <NavLink key={to} to={to} className={({ isActive }) => `border-b border-line py-3 text-[15px] font-semibold last:border-0 ${isActive ? 'text-primary-dark' : 'text-heading'}`}>
+              {label}
             </NavLink>
           ))}
         </nav>
-        <a href={`tel:${company.phoneRaw}`}>
-          <Button type="primary" size="large" block className="!mt-6" icon={<Icon3d name="phone" size={20} />}>
-            Call {company.phone}
+        <div className="space-y-2 p-4">
+          <Button block icon={<FileText size={16} />} onClick={() => { setOpen(false); openQuote() }}>
+            Bulk / project quote{quoteCount ? ` (${quoteCount})` : ''}
           </Button>
-        </a>
+          <a href={`tel:${company.phoneRaw}`} className="block">
+            <Button type="primary" block icon={<Phone size={16} />}>Call {company.phone}</Button>
+          </a>
+        </div>
       </Drawer>
     </>
   )

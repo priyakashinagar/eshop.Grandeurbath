@@ -2,32 +2,39 @@
 @layer theme, base, antd, components, utilities;
 @import "tailwindcss";
 
-/* Theme taken from ishantube_frontend_admin (src/assets/scss/utils/_variables.scss) */
+/* Theme based on plantex.in (white store, dark text, teal action colour) */
 @theme {
-  --color-primary: #FE9F43;
-  --color-primary-dark: #E8862A;
-  --color-primary-50: #FFF6EE;
-  --color-primary-100: #FFEDDD;
-  --color-primary-200: #FFE3CB;
-  --color-secondary: #092C4C;
-  --color-secondary-light: #213F5D;
-  --color-dark: #1B2850;
-  --color-gold: #AE7714;
-  --color-success: #3EB780;
+  --color-primary: #0FAFBF;
+  --color-primary-dark: #0B8E9B;
+  --color-primary-50: #EBF9FA;
+  --color-primary-100: #D3F2F5;
+  --color-primary-200: #A9E5EB;
+  --color-secondary: #1C1C1C;
+  --color-secondary-light: #333333;
+  --color-dark: #1C1C1C;
+  --color-gold: #D4A373;
+  --color-bronze: #B6713E;
+  --color-accent: #E95200;
+  --color-sale: #DB0000;
+  --color-new: #0D9D00;
+  --color-success: #0D9D00;
   --color-info: #155EEF;
   --color-teal: #0E9384;
   --color-purple: #6938EF;
-  --color-body: #5B6570;
-  --color-heading: #1B2850;
-  --color-light: #F5F7FA;
-  --color-line: #E6EAED;
+  --color-body: #666666;
+  --color-heading: #1C1C1C;
+  --color-light: #F4F5F7;
+  --color-soft: #FBFBFB;
+  --color-muted: #B5B5B5;
+  --color-line: #E5E5E5;
 
-  --font-sans: "Nunito", sans-serif;
-  --font-heading: "Poppins", sans-serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-heading: "DM Sans", sans-serif;
 }
 
 @layer base {
   html { scroll-behavior: smooth; }
+  #root { overflow-x: clip; }
   body {
     margin: 0;
     background: #ffffff;
@@ -43,18 +50,18 @@
 }
 
 @layer components {
-  .container-x { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 16px; }
+  .container-x { width: 100%; max-width: 1320px; margin-inline: auto; padding-inline: 16px; }
   @media (min-width: 768px) { .container-x { padding-inline: 24px; } }
 
   .section { padding-block: 40px; }
   @media (min-width: 1024px) { .section { padding-block: 52px; } }
 
   /* Section backgrounds */
-  .bg-soft { background: linear-gradient(180deg, #FFF7EF 0%, #FFFDFB 100%); }
-  .bg-cool { background: linear-gradient(180deg, #F3F6FA 0%, #FAFBFD 100%); }
+  .bg-soft { background: linear-gradient(180deg, #F1FAFB 0%, #FFFFFF 100%); }
+  .bg-cool { background: #F7F8FA; }
   .bg-pattern {
     background-color: #ffffff;
-    background-image: radial-gradient(rgba(9, 44, 76, .06) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(28, 28, 28, .05) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
@@ -122,7 +129,7 @@
 @keyframes heroUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
 .swiper-pagination-bullet { width: 9px; height: 9px; background: var(--color-secondary); opacity: .25; transition: all .3s ease; }
 .swiper-pagination-bullet-active { width: 26px; border-radius: 6px; background: var(--color-primary); opacity: 1; }
-.hero-slider .swiper-pagination { bottom: 32px !important; text-align: left; padding-inline: max(16px, calc((100vw - 1200px) / 2 + 24px)); }
+.hero-slider .swiper-pagination { bottom: 32px !important; text-align: left; padding-inline: max(16px, calc((100vw - 1320px) / 2 + 24px)); }
 .hero-slider .swiper-pagination-bullet { background: #fff; opacity: .5; }
 .hero-slider .swiper-pagination-bullet-active { background: var(--color-primary); opacity: 1; }
 .slider-pad { padding: 10px 4px 44px !important; }
@@ -138,3 +145,31 @@
 .icon3d img { transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
 .tilt:hover .icon3d, .icon3d:hover { transform: translateZ(30px) scale(1.06); }
 .tilt:hover .icon3d img, .icon3d:hover img { transform: rotate(-8deg) scale(1.12); }
+
+/* ---------- Store UI (Plantex style) ---------- */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.mega-panel { opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease, visibility .2s; }
+.mega-trigger:hover > .mega-panel, .mega-trigger:focus-within > .mega-panel { opacity: 1; visibility: visible; transform: none; }
+
+.pcard { transition: box-shadow .25s ease, border-color .25s ease, transform .25s ease; }
+.pcard:hover { box-shadow: 0 16px 36px -20px rgba(0, 0, 0, .28); border-color: #d6d6d6; transform: translateY(-3px); }
+.pcard .pcard-actions { opacity: 0; transform: translateX(8px); transition: all .25s ease; }
+.pcard:hover .pcard-actions, .pcard:focus-within .pcard-actions { opacity: 1; transform: none; }
+@media (hover: none) { .pcard .pcard-actions { opacity: 1; transform: none; } }
+
+@keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+.marquee { animation: marquee 30s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+
+@keyframes ticker { 0%, 28% { transform: translateY(0) } 33%, 61% { transform: translateY(-33.3333%) } 66%, 94% { transform: translateY(-66.6667%) } 100% { transform: translateY(0) } }
+.ticker { animation: ticker 12s ease-in-out infinite; }
+
+.store-slider .swiper-pagination { bottom: 14px !important; }
+.store-slider .swiper-pagination-bullet { background: #fff; opacity: .6; }
+.store-slider .swiper-pagination-bullet-active { background: var(--color-primary); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee, .ticker { animation: none; }
+}

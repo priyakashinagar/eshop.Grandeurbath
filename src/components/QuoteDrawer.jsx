@@ -4,12 +4,13 @@ import { Trash2 } from 'lucide-react'
 import IconTile from './IconTile'
 import LeadForm from './LeadForm'
 import { useQuote } from './quoteContext'
-import { products, photo, inr } from '../data/content'
+import ProductImage from './shop/ProductImage'
+import { products, inr } from '../data/content'
 
 export default function QuoteDrawer({ open, onClose }) {
   const { items, setQty, remove, clear } = useQuote()
   const rows = items.map((i) => ({ ...i, p: products.find((p) => p.code === i.code) })).filter((r) => r.p)
-  const total = rows.reduce((s, r) => s + r.p.mrp * r.qty, 0)
+  const total = rows.reduce((sum, r) => sum + r.p.mrp * r.qty, 0)
 
   return (
     <Drawer
@@ -34,7 +35,7 @@ export default function QuoteDrawer({ open, onClose }) {
           <ul className="list-none p-0 m-0 divide-y divide-line">
             {rows.map(({ code, qty, p }) => (
               <li key={code} className="flex gap-3 py-3">
-                <img src={photo(p.img, 160)} alt={p.name} className="h-16 w-16 rounded-lg object-cover" />
+                <ProductImage p={p} width={160} className="h-16 w-16 shrink-0 rounded-lg" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-heading leading-snug line-clamp-2">{p.name}</p>
                   <p className="text-xs mt-0.5">Code {code} &middot; MRP ₹{inr(p.mrp)}</p>

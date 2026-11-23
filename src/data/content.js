@@ -31,22 +31,8 @@ export const categories = [
   { key: 'vanity', label: 'Vanities and Accessories', icon: 'mirror', color: 'pink', img: 'photo-1600488999585-e4364713b90a', text: 'Vanity units, mirrors and bath accessories' },
 ]
 
-// Items and MRPs from the Grandeur Bath quotation format
-export const products = [
-  { code: 'ISH1118', name: 'Delta 10 inch H2Okinetic Shower', cat: 'showers', mrp: 21100, finish: 'Chrome', img: 'photo-1584622650111-993a426fbf0a', tag: 'Bestseller' },
-  { code: 'S777', name: 'Delta 5 inch Multi-Function Handshower with H2Okinetic and Mist Spray', cat: 'showers', mrp: 15900, finish: 'Chrome', img: 'photo-1629079447777-1e605162dc8d' },
-  { code: 'RP70171PR', name: 'Single Function 6 inch Square Showerhead with H2Okinetic', cat: 'showers', mrp: 14000, finish: 'Lumicoat Polished Chrome', img: 'photo-1552321554-5fefe8c9ef14', tag: 'New' },
-  { code: 'RP49139', name: 'Delta Shower Arm', cat: 'showers', mrp: 2830, finish: 'Chrome', img: 'photo-1600566752355-35792bedcfea' },
-  { code: 'U4993-PK', name: 'Delta 6 inch Wall-Mount Shower Arm with Round Flange', cat: 'showers', mrp: 1145, finish: 'Chrome', img: 'photo-1604709177225-055f99402ea3' },
-  { code: 'T31339-WL', name: 'Kami Single-Handle Wall-Mount Lavatory Faucet Trim', cat: 'faucets', mrp: 15900, finish: 'Chrome', img: 'photo-1595514535415-dae8580c416c', tag: 'Bestseller' },
-  { code: 'T853339', name: 'Kami In-Wall Tub and Shower Trim', cat: 'bath', mrp: 7420, finish: 'Chrome', img: 'photo-1603825491103-bd638b1873b0' },
-  { code: 'ITS62339', name: 'Kami Tub Spout with Diverter to Handshower with Flange', cat: 'bath', mrp: 10100, finish: 'Chrome', img: 'photo-1507652313519-d4e9174996dd' },
-  { code: 'ITS61339', name: 'Kami Tub Spout', cat: 'bath', mrp: 7400, finish: 'Chrome', img: 'photo-1620626011761-996317b8d101' },
-  { code: '22901-I', name: 'Contemporary Health Faucet', cat: 'wc', mrp: 2780, finish: 'Chrome', img: 'photo-1631889993959-41b4e9c6e3c5' },
-  { code: 'T75002', name: 'Korby Concealed Stop Trim for 1/2 and 3/4 inch Rough', cat: 'valves', mrp: 1550, finish: 'Chrome', img: 'photo-1585704032915-c3400ca199e7' },
-  { code: 'IAO36005', name: 'Rectangular Quarter-Turn Angle Valve with Flange', cat: 'valves', mrp: 1810, finish: 'Chrome', img: 'photo-1576698483491-8c43f0862543' },
-  { code: '91355', name: 'Delta Ixa Jive Pull Down Kitchen Faucet', cat: 'kitchen', mrp: 17600, finish: 'Chrome', img: 'photo-1600566752229-250ed79470f8', tag: 'Premium' },
-]
+// Products now live in the store catalogue; re-exported so older imports (quote list) keep working
+export { products } from './shop'
 
 export const spaces = [
   { title: 'Master Bathroom', icon: 'bath', img: 'photo-1603825491103-bd638b1873b0', text: 'Rain showers, tub spouts and statement faucets.' },
