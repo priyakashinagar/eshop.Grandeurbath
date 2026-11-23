@@ -6,6 +6,7 @@ import { MapPin, Phone, Mail, MessageCircle } from 'lucide-react'
 import Logo from './Logo'
 import { Icon3d } from './IconTile'
 import { company } from '../data/content'
+import { subscribe as subscribeApi } from '../api'
 import { groups, trustBadges } from '../data/shop'
 
 const columns = [
@@ -54,10 +55,15 @@ export default function Footer() {
   const { message } = App.useApp()
   const [email, setEmail] = useState('')
 
-  const subscribe = (e) => {
+  const subscribe = async (e) => {
     e.preventDefault()
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       message.error('Please enter a valid email')
+      return
+    }
+    const res = await subscribeApi(email.trim())
+    if (!res.ok) {
+      message.error(res.message)
       return
     }
     message.success('Thanks for subscribing. Offers will reach your inbox.')
@@ -82,6 +88,7 @@ export default function Footer() {
       </div>
 
       <div className="bg-secondary text-white/70">
+        <div className="gold-line" aria-hidden />
         {/* Newsletter */}
         <div className="border-b border-white/10">
           <div className="container-x flex flex-col items-start justify-between gap-4 py-7 md:flex-row md:items-center">
@@ -103,10 +110,10 @@ export default function Footer() {
               Bath tubs, water tanks, bathroom fittings and plumbing products for homes, hotels and projects, from {company.legal}.
             </p>
             <ul className="m-0 mt-5 list-none space-y-2.5 p-0 text-sm">
-              <li className="flex gap-2.5"><MapPin size={17} className="mt-0.5 shrink-0 text-primary" /> {company.address}</li>
-              <li><a href={`tel:${company.phoneRaw}`} className="flex gap-2.5 hover:text-primary"><Phone size={17} className="text-primary" /> {company.phone}</a></li>
-              <li><a href={`mailto:${company.email}`} className="flex gap-2.5 hover:text-primary"><Mail size={17} className="text-primary" /> {company.email}</a></li>
-              <li><a href={`https://wa.me/${company.whatsapp}`} target="_blank" rel="noreferrer" className="flex gap-2.5 hover:text-primary"><MessageCircle size={17} className="text-primary" /> WhatsApp us</a></li>
+              <li className="flex gap-2.5"><MapPin size={17} className="mt-0.5 shrink-0 text-gold" /> {company.address}</li>
+              <li><a href={`tel:${company.phoneRaw}`} className="flex gap-2.5 hover:text-gold"><Phone size={17} className="text-gold" /> {company.phone}</a></li>
+              <li><a href={`mailto:${company.email}`} className="flex gap-2.5 hover:text-gold"><Mail size={17} className="text-gold" /> {company.email}</a></li>
+              <li><a href={`https://wa.me/${company.whatsapp}`} target="_blank" rel="noreferrer" className="flex gap-2.5 hover:text-gold"><MessageCircle size={17} className="text-gold" /> WhatsApp us</a></li>
             </ul>
             <div className="mt-5 flex gap-2.5">
               {socials.map(({ Icon, label }) => (
@@ -119,21 +126,21 @@ export default function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:col-span-1 lg:col-span-8 lg:grid-cols-4">
             <div>
-              <h4 className="mb-4 text-[15px] font-bold !text-white">Categories</h4>
+              <h4 className="mb-4 text-[15px] font-bold !text-gold">Categories</h4>
               <ul className="m-0 list-none space-y-2.5 p-0 text-sm">
                 {groups.map((g) => (
-                  <li key={g.key}><Link to={`/products?group=${g.key}`} className="transition-colors hover:text-primary">{g.label}</Link></li>
+                  <li key={g.key}><Link to={`/products?group=${g.key}`} className="transition-colors hover:text-gold">{g.label}</Link></li>
                 ))}
-                <li><Link to="/offers" className="transition-colors hover:text-primary">Offers</Link></li>
-                <li><Link to="/new-arrivals" className="transition-colors hover:text-primary">New Arrivals</Link></li>
+                <li><Link to="/offers" className="transition-colors hover:text-gold">Offers</Link></li>
+                <li><Link to="/new-arrivals" className="transition-colors hover:text-gold">New Arrivals</Link></li>
               </ul>
             </div>
             {columns.map((c) => (
               <div key={c.title}>
-                <h4 className="mb-4 text-[15px] font-bold !text-white">{c.title}</h4>
+                <h4 className="mb-4 text-[15px] font-bold !text-gold">{c.title}</h4>
                 <ul className="m-0 list-none space-y-2.5 p-0 text-sm">
                   {c.links.map(([label, to]) => (
-                    <li key={label}><Link to={to} className="transition-colors hover:text-primary">{label}</Link></li>
+                    <li key={label}><Link to={to} className="transition-colors hover:text-gold">{label}</Link></li>
                   ))}
                 </ul>
               </div>

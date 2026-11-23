@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { App } from 'antd'
 import { ShopContext } from './shopContext'
 import { findProduct } from '../data/shop'
+import * as api from '../api'
 
 const load = (key, fallback) => {
   try {
@@ -32,11 +33,21 @@ export default function ShopProvider({ children }) {
   const [cart, setCart] = useStored('gb-cart', [])
   const [wishlist, setWishlist] = useStored('gb-wishlist', [])
   const [compare, setCompare] = useStored('gb-compare', [])
-  const [user, setUser] = useStored('gb-user', null)
+  const [storedUser, setUser] = useStored('gb-user', null)
+  // A saved user without a valid token (expired or from the old demo login) counts as logged out
+  const user = storedUser && api.getToken() ? storedUser : null
   const [orders, setOrders] = useStored('gb-orders', [])
   const [pincode, setPincode] = useStored('gb-pincode', null)
   const [coupon, setCoupon] = useStored('gb-coupon', '')
   const [pincodeOpen, setPincodeOpen] = useState(false)
+
+  // While logged in, keep the cart and wishlist saved on the account (debounced)
+  const synced = useRef(Boolean(user))
+  useEffect(() => {
+    if (!user || !synced.current) return undefined
+    const t = setTimeout(() => api.saveCart(cart, wishlist), 600)
+    return () => clearTimeout(t)
+  }, [user, cart, wishlist])
 
   const value = useMemo(() => {
     const cartRows = cart.map((i) => ({ ...i, product: findProduct(i.id) })).filter((r) => r.product)
@@ -97,16 +108,47 @@ export default function ShopProvider({ children }) {
       clearCompare: () => setCompare([]),
 
       user,
-      setUser,
+      // Called after login/signup: merges the cart saved on the account with this device's cart
+      signIn: async (u) => {
+        setUser(u)
+        synced.current = false
+        const res = await api.getSavedCart()
+        if (res.ok) {
+          setCart((local) => {
+            const merged = new Map(res.cart.map((i) => [i.id, i.qty]))
+            local.forEach((i) => merged.set(i.id, Math.max(i.qty, merged.get(i.id) || 0)))
+            return [...merged].map(([id, qty]) => ({ id, qty })).filter((i) => findProduct(i.id))
+          })
+          setWishlist((local) => [...new Set([...res.wishlist, ...local])].filter((id) => findProduct(id)))
+        }
+        synced.current = true
+      },
       logout: () => {
+        api.clearToken()
+        synced.current = false
         setUser(null)
+        setCart([])
+        setWishlist([])
+        setOrders([])
         message.success('You have been logged out')
       },
 
       orders,
-      addOrder: (order) => setOrders((list) => [order, ...list]),
-      cancelOrder: (id) => {
-        setOrders((list) => list.map((o) => (o.id === id ? { ...o, status: 'cancelled', cancelledAt: new Date().toISOString() } : o)))
+      addOrder: (order) => setOrders((list) => [order, ...list.filter((o) => o.id !== order.id)]),
+      // Server orders replace local copies; guest orders placed on this device are kept
+      loadMyOrders: async () => {
+        const res = await api.myOrders()
+        if (res.ok) setOrders((list) => [...res.orders, ...list.filter((o) => !res.orders.some((x) => x.id === o.id))])
+        return res
+      },
+      cancelOrder: async (id) => {
+        const o = orders.find((x) => x.id === id)
+        const res = await api.cancelOrder(id, user ? undefined : o?.customer?.mobile)
+        if (!res.ok) {
+          message.error(res.message)
+          return
+        }
+        setOrders((list) => list.map((x) => (x.id === id ? res.order : x)))
         message.success('Your order has been cancelled')
       },
 

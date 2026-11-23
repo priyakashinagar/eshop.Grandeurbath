@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Form, Input, Select, Button, Radio, Empty, Modal, Spin, Tag } from 'antd'
+import { Form, Input, Select, Button, Radio, Empty, Modal, Spin, Tag, App } from 'antd'
 import { UserRound, MapPin, CreditCard, Lock, CheckCircle2, Wallet, Banknote } from 'lucide-react'
 import StoreHeading from '../components/shop/StoreHeading'
 import ProductImage from '../components/shop/ProductImage'
 import OrderSummary, { CouponBox } from '../components/shop/OrderSummary'
 import { indianStates, delivery } from '../data/shop'
-import { checkPincode, placeOrder } from '../api'
+import { checkPincode, placeOrder, payWithRazorpay } from '../api'
 import { useShop } from '../store/shopContext'
 import { inr, summarize } from '../utils/pricing'
 
@@ -33,6 +33,7 @@ const payOptions = [
 export default function Checkout() {
   const navigate = useNavigate()
   const [form] = Form.useForm()
+  const { message } = App.useApp()
   const { cartRows, coupon, clearCart, user, orders, addOrder, pincode, setPincode } = useShop()
   const [mode, setMode] = useState(user ? 'user' : 'guest')
   const [payment, setPayment] = useState('razorpay')
@@ -68,21 +69,38 @@ export default function Checkout() {
 
   const submit = async (v) => {
     setPlacing(true)
+    // Only ids and quantities are sent; the server works out prices, coupon and stock itself
     const res = await placeOrder({
-      customer: { name: v.name, mobile: v.mobile, email: v.email, guest: !user },
-      address: { line1: v.line1, landmark: v.landmark, city: v.city, state: v.state, pincode: v.pincode, gstin: v.gstin },
-      items: cartRows.map(({ product: p, qty }) => ({ id: p.id, code: p.code, name: p.name, brand: p.brand, price: p.price, mrp: p.mrp, qty, images: p.images, art: p.art })),
-      summary: s,
+      customer: { name: v.name, mobile: v.mobile, email: v.email },
+      address: { line1: v.line1, landmark: v.landmark || undefined, city: v.city, state: v.state, pincode: v.pincode, gstin: v.gstin || undefined },
+      items: cartRows.map(({ product: p, qty }) => ({ id: p.id, qty })),
       coupon: s.couponOff ? coupon : '',
       payment: codAllowed ? payment : 'razorpay',
     })
-    setPlacing(false)
-    if (res.ok) {
-      addOrder(res.order)
-      clearCart()
-      navigate(`/order-success/${res.order.id}`, { replace: true })
+    if (!res.ok) {
+      setPlacing(false)
+      message.error(res.message)
+      return
     }
+
+    let order = res.order
+    if (res.razorpay) {
+      if (!res.razorpay.testMode) setPlacing(false) // Razorpay shows its own window
+      const paid = await payWithRazorpay(order, res.razorpay)
+      if (!paid.ok) {
+        setPlacing(false)
+        message.warning(paid.message) // cart is kept so the customer can try again
+        return
+      }
+      order = paid.order
+    }
+
+    setPlacing(false)
+    addOrder(order)
+    clearCart()
+    navigate(`/order-success/${order.id}`, { replace: true })
   }
+
 
   return (
     <>
@@ -174,7 +192,7 @@ export default function Checkout() {
                   )
                 })}
               </Radio.Group>
-              <p className="mt-3 text-xs">Razorpay runs in test mode on this website. The live payment window will open here once the payment API is connected.</p>
+              <p className="mt-3 text-xs">Payments are processed securely by Razorpay. Until live Razorpay keys are added on the server, online payment runs in test mode.</p>
             </Step>
           </div>
 

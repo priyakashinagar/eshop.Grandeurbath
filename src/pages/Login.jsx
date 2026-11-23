@@ -16,7 +16,7 @@ export default function Login() {
   const navigate = useNavigate()
   const { message } = App.useApp()
   const [params] = useSearchParams()
-  const { user, setUser } = useShop()
+  const { user, signIn } = useShop()
   const [tab, setTab] = useState(params.get('tab') === 'signup' ? 'signup' : 'login')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,7 +30,7 @@ export default function Login() {
       setError(res.message)
       return
     }
-    setUser(res.user)
+    signIn(res.user)
     message.success(text)
     navigate(from, { replace: true })
   }

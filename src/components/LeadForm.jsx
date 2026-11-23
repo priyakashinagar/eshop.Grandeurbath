@@ -1,11 +1,23 @@
+import { useState } from 'react'
 import { Form, Input, Select, Button, App } from 'antd'
+import { sendEnquiry } from '../api'
 
-export default function LeadForm({ submitText = 'Submit', withMessage = false, onDone }) {
+// Saves a contact enquiry, or a bulk quote request when items are passed
+export default function LeadForm({ submitText = 'Submit', withMessage = false, onDone, items }) {
   const [form] = Form.useForm()
   const { message } = App.useApp()
 
-  const submit = () => {
-    message.success('Thank you. Our team will contact you within 24 hours.')
+  const [sending, setSending] = useState(false)
+
+  const submit = async (v) => {
+    setSending(true)
+    const res = await sendEnquiry({ ...v, email: v.email || undefined, kind: items?.length ? 'quote' : 'contact', items })
+    setSending(false)
+    if (!res.ok) {
+      message.error(res.message)
+      return
+    }
+    message.success(res.message)
     form.resetFields()
     onDone?.()
   }
@@ -49,7 +61,7 @@ export default function LeadForm({ submitText = 'Submit', withMessage = false, o
           <Input.TextArea rows={4} placeholder="Number of bathrooms, products you need, site location" />
         </Form.Item>
       )}
-      <Button type="primary" htmlType="submit" size="large" block>
+      <Button type="primary" htmlType="submit" size="large" block loading={sending}>
         {submitText}
       </Button>
     </Form>

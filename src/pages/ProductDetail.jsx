@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button, InputNumber, Tabs, Rate, Progress, Form, Input, Checkbox, Modal, App, Image } from 'antd'
 import { Heart, GitCompareArrows, Share2, ShoppingCart, Zap, ShieldCheck, Truck, RotateCcw, BadgePercent, PlayCircle, FileText, ThumbsUp, MessageCircleQuestion } from 'lucide-react'
@@ -9,7 +9,8 @@ import { PincodeChecker } from '../components/shop/PincodeModal'
 import { RatingPill, StockLabel } from '../components/ProductCard'
 import NotFound from './NotFound'
 import { photo } from '../data/content'
-import { findProduct, findSub, products, reviewsFor, questionsFor, coupons } from '../data/shop'
+import { findProduct, findSub, products, coupons } from '../data/shop'
+import { getReviews, addReview, getQuestions, askQuestion } from '../api'
 import { useShop } from '../store/shopContext'
 import { useQuote } from '../components/quoteContext'
 import { inr } from '../utils/pricing'
@@ -95,11 +96,25 @@ function Specs({ p }) {
   )
 }
 
+// Loads a list for this product from the API once; returns [list, setList, loading]
+function useProductList(load, id, field) {
+  const [state, setState] = useState({ id: null, list: [] })
+  useEffect(() => {
+    let live = true
+    load(id).then((res) => live && setState({ id, list: res.ok ? res[field] : [] }))
+    return () => {
+      live = false
+    }
+  }, [load, id, field])
+  const setList = (fn) => setState((x) => ({ ...x, list: fn(x.list) }))
+  return [state.list, setList, state.id !== id]
+}
+
 function Reviews({ p }) {
   const { message } = App.useApp()
   const [form] = Form.useForm()
-  const [mine, setMine] = useState([])
-  const list = [...mine, ...reviewsFor(p)]
+  const [list, setList, loading] = useProductList(getReviews, p.id, 'reviews')
+  const [sending, setSending] = useState(false)
   const bars = [5, 4, 3, 2, 1].map((s) => {
     const share = s === 5 ? 0.62 : s === 4 ? 0.24 : s === 3 ? 0.09 : s === 2 ? 0.03 : 0.02
     return { s, pct: Math.round(share * 100) }
@@ -128,8 +143,15 @@ function Reviews({ p }) {
             form={form}
             layout="vertical"
             requiredMark={false}
-            onFinish={(v) => {
-              setMine((x) => [{ id: `me-${Date.now()}`, name: v.name, rating: v.rating, text: v.text, date: new Date().toISOString().slice(0, 10), verified: false }, ...x])
+            onFinish={async (v) => {
+              setSending(true)
+              const res = await addReview(p.id, { name: v.name, rating: v.rating, text: v.text })
+              setSending(false)
+              if (!res.ok) {
+                message.error(res.message)
+                return
+              }
+              setList((x) => [res.review, ...x])
               form.resetFields()
               message.success('Thank you for your review')
             }}
@@ -143,10 +165,12 @@ function Reviews({ p }) {
             <Form.Item name="text" label="Review" rules={[{ required: true, min: 10, message: 'Please write at least 10 characters' }]}>
               <Input.TextArea rows={3} placeholder="What did you like or dislike?" />
             </Form.Item>
-            <Button type="primary" htmlType="submit" block>Submit review</Button>
+            <Button type="primary" htmlType="submit" block loading={sending}>Submit review</Button>
           </Form>
         </div>
       </div>
+      {loading && <p className="text-sm">Loading reviews...</p>}
+      {!loading && !list.length && <p className="text-sm">No reviews yet. Be the first to review this product.</p>}
       <ul className="m-0 list-none divide-y divide-line p-0">
         {list.map((r) => (
           <li key={r.id} className="py-4 first:pt-0">
@@ -170,16 +194,20 @@ function Reviews({ p }) {
 function Questions({ p }) {
   const { message } = App.useApp()
   const [q, setQ] = useState('')
-  const [asked, setAsked] = useState([])
-  const list = [...asked, ...questionsFor(p)]
+  const [list, setList] = useProductList(getQuestions, p.id, 'questions')
   return (
     <div className="max-w-3xl">
       <form
         className="flex gap-2"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
           if (q.trim().length < 5) return
-          setAsked((x) => [{ q: q.trim(), a: null }, ...x])
+          const res = await askQuestion(p.id, q.trim())
+          if (!res.ok) {
+            message.error(res.message)
+            return
+          }
+          setList((x) => [res.question, ...x])
           setQ('')
           message.success('Question submitted. Our team usually answers within 24 hours.')
         }}

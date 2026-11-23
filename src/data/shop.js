@@ -1,4 +1,5 @@
-// Store catalogue (mock data). When the products API is ready, return the same shape from src/api/index.js.
+// Store catalogue. Products are loaded from the backend (GET /api/products) in main.jsx;
+// the dummy list below is only used when the API cannot be reached.
 
 export const delivery = { freeAbove: 999, charge: 99, codLimit: 50000, gstRate: 18 }
 
@@ -65,7 +66,7 @@ export const findSub = (key) => subcategories.find((s) => s.key === key)
 
 export const brands = [
   { name: 'Delta', note: 'Showers and faucets', color: '#C8102E' },
-  { name: 'Grandeur Bath', note: 'Bathtubs and sanitaryware', color: '#0FAFBF' },
+  { name: 'Grandeur Bath', note: 'Bathtubs and sanitaryware', color: '#AE7714' },
   { name: 'Ishan Tubes', note: 'Pipes and fittings', color: '#1C1C1C' },
   { name: 'AquaMax', note: 'Water storage tanks', color: '#1F6FD1' },
   { name: 'Kami', note: 'Designer trims', color: '#B6713E' },
@@ -124,7 +125,7 @@ const raw = [
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
-export const products = raw.map((p) => {
+const fallbackProducts = raw.map((p) => {
   const sub = findSub(p.cat)
   const price = round10(p.mrp * (1 - p.off / 100))
   return {
@@ -146,6 +147,15 @@ export const products = raw.map((p) => {
     ],
   }
 })
+
+// Filled once at start-up. The array is updated in place so every import sees the same list.
+export const products = []
+export const catalogSource = { from: 'fallback' }
+
+export function setCatalog(list, from = 'api') {
+  products.splice(0, products.length, ...(list?.length ? list : fallbackProducts))
+  catalogSource.from = list?.length ? from : 'fallback'
+}
 
 export const findProduct = (id) => products.find((p) => p.id === id || p.code === id)
 
@@ -175,7 +185,7 @@ export const heroSlides = [
 ]
 
 export const sideBanners = [
-  { title: 'Water Tanks', text: 'Triple layer tanks from ₹4,210', to: '/products?group=water-tank', art: { kind: 'tank', color: '#1C1C1C' }, bg: 'from-[#E8F6F8] to-[#CFEFF3]' },
+  { title: 'Water Tanks', text: 'Triple layer tanks from ₹4,210', to: '/products?group=water-tank', art: { kind: 'tank', color: '#1C1C1C' }, bg: 'from-[#FBF5E8] to-[#F1DFB8]' },
   { title: 'Plumbing Essentials', text: 'Pipes and fittings up to 40% off', to: '/products?group=plumbing', img: 'photo-1585704032915-c3400ca199e7', bg: 'from-[#FFF1E8] to-[#FFDCC8]' },
 ]
 

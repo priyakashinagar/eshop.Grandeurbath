@@ -19,7 +19,7 @@ export default function MobileTabBar() {
         {tabs.map(({ to, label, Icon, count, end }) => (
           <li key={label}>
             <NavLink to={to} end={end} className={({ isActive }) => `flex flex-col items-center gap-0.5 py-2 text-[11px] font-bold ${isActive ? 'text-primary-dark' : 'text-body'}`}>
-              <Badge count={count} size="small" color="#0FAFBF" offset={[2, 0]}>
+              <Badge count={count} size="small" color="#AE7714" offset={[2, 0]}>
                 <Icon size={21} strokeWidth={1.8} className="text-current" />
               </Badge>
               {label}

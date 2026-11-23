@@ -7,6 +7,7 @@ export default function SectionHead({ title, text, to, linkText = 'View all', ch
     <div className="mb-5 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h2 className="text-[22px] font-bold leading-tight md:text-[28px]">{title}</h2>
+        <span className="gold-grad mt-2 block h-[3px] w-12 rounded-full" aria-hidden />
         {text && <p className="mt-1 text-sm md:text-[15px]">{text}</p>}
       </div>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">

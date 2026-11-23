@@ -58,6 +58,7 @@ export default function QuoteDrawer({ open, onClose }) {
             <h4 className="text-base font-semibold mb-3">Send quotation request</h4>
             <LeadForm
               submitText="Request quotation"
+              items={rows.map(({ code, qty, p }) => ({ code, name: p.name, qty }))}
               onDone={() => {
                 clear()
                 onClose()

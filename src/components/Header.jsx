@@ -23,7 +23,7 @@ const topProducts = (group) => products.filter((p) => p.group === group).sort((a
 function IconAction({ to, onClick, icon: Icon, label, count, sub }) {
   const inner = (
     <>
-      <Badge count={count} size="small" color="#0FAFBF" offset={[-2, 2]}>
+      <Badge count={count} size="small" color="#AE7714" offset={[-2, 2]}>
         <Icon size={23} strokeWidth={1.7} className="text-heading" />
       </Badge>
       <span className="hidden leading-tight xl:block">
@@ -181,17 +181,18 @@ export default function Header() {
             </div>
           </div>
           <div className="hidden shrink-0 items-center gap-5 whitespace-nowrap md:flex">
-            <Link to="/hospitality" className="hover:text-primary xl:hidden">Hotels and Projects</Link>
-            <Link to="/about" className="hover:text-primary xl:hidden">About</Link>
-            <Link to="/contact" className="flex items-center gap-1.5 whitespace-nowrap hover:text-primary"><Headphones size={14} /> Customer Support</Link>
-            <Link to="/track-order" className="flex items-center gap-1.5 hover:text-primary"><Truck size={14} /> Track Order</Link>
-            <button type="button" onClick={openQuote} className="flex cursor-pointer items-center gap-1.5 hover:text-primary">
+            <Link to="/hospitality" className="text-white/85 hover:text-gold xl:hidden">Hotels and Projects</Link>
+            <Link to="/about" className="text-white/85 hover:text-gold xl:hidden">About</Link>
+            <Link to="/contact" className="flex items-center gap-1.5 whitespace-nowrap text-white/85 hover:text-gold"><Headphones size={14} /> Customer Support</Link>
+            <Link to="/track-order" className="flex items-center gap-1.5 text-white/85 hover:text-gold"><Truck size={14} /> Track Order</Link>
+            <button type="button" onClick={openQuote} className="flex cursor-pointer items-center gap-1.5 hover:text-gold">
               <FileText size={14} /> Bulk Quote{quoteCount ? ` (${quoteCount})` : ''}
             </button>
-            <a href={`tel:${company.phoneRaw}`} className="flex items-center gap-1.5 font-bold text-white hover:text-primary"><Phone size={14} /> {company.phone}</a>
+            <a href={`tel:${company.phoneRaw}`} className="flex items-center gap-1.5 font-bold text-gold hover:text-white"><Phone size={14} /> {company.phone}</a>
           </div>
         </div>
       </div>
+      <div className="gold-line" aria-hidden />
 
       <header className="sticky top-0 z-50 bg-white shadow-[0_1px_0_#E5E5E5]">
         {/* Main row */}
@@ -247,7 +248,7 @@ export default function Header() {
         >
           <div className="container-x flex items-center">
             <div className="mega-trigger">
-              <button type="button" className="my-1.5 mr-2 flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg bg-primary px-3 py-2 text-[14px] xl:mr-3 xl:px-4 font-bold text-white hover:bg-primary-dark">
+              <button type="button" className="my-1.5 mr-2 flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg gold-grad px-3 py-2 text-[14px] xl:mr-3 xl:px-4 font-bold text-white shadow-[0_6px_16px_-8px_rgba(174,119,20,.8)] hover:brightness-110">
                 <Menu size={17} /> All Categories <ChevronDown size={15} />
               </button>
               <div className="mega-panel absolute inset-x-0 top-full z-50">

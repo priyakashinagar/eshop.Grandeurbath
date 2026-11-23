@@ -31,7 +31,7 @@ export default function OrderSuccess() {
               title={`Thank you, ${order.customer.name.split(' ')[0]}! Your order is placed.`}
               subTitle={
                 <>
-                  Order ID <b className="text-heading">{order.id}</b> · {order.payment === 'cod' ? 'Cash on delivery' : 'Paid online via Razorpay (test mode)'}. A confirmation is sent to {order.customer.email}.
+                  Order ID <b className="text-heading">{order.id}</b> · {order.payment === 'cod' ? 'Cash on delivery' : order.paymentStatus === 'paid' ? 'Paid online via Razorpay' : 'Payment pending'}. Save this order ID to track your order.
                 </>
               }
             />

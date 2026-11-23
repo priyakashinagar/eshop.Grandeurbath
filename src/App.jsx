@@ -27,16 +27,17 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 
-// Colours and font follow plantex.in
+// Layout follows plantex.in, colours follow the gold Grandeur Bath logo
 const theme = {
   token: {
-    colorPrimary: '#0FAFBF',
-    colorInfo: '#0FAFBF',
+    colorPrimary: '#AE7714',
+    colorInfo: '#AE7714',
     colorSuccess: '#0D9D00',
     colorError: '#DB0000',
     colorWarning: '#E95200',
-    colorLink: '#0B8E9B',
+    colorLink: '#8A5C0B',
     colorTextBase: '#1C1C1C',
+    colorBgSpotlight: '#161412',
     colorBorder: '#E5E5E5',
     fontFamily: '"DM Sans", sans-serif',
     borderRadius: 8,
@@ -53,7 +54,7 @@ const theme = {
     },
     Collapse: { headerBg: '#ffffff' },
     Tabs: { titleFontSizeLG: 16 },
-    Segmented: { itemSelectedBg: '#1C1C1C', itemSelectedColor: '#ffffff' },
+    Segmented: { itemSelectedBg: '#161412', itemSelectedColor: '#E6C46E' },
   },
 }
 

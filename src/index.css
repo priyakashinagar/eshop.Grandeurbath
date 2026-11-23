@@ -2,17 +2,17 @@
 @layer theme, base, antd, components, utilities;
 @import "tailwindcss";
 
-/* Theme based on plantex.in (white store, dark text, teal action colour) */
+/* Store layout based on plantex.in, colours taken from the Grandeur Bath gold logo */
 @theme {
-  --color-primary: #0FAFBF;
-  --color-primary-dark: #0B8E9B;
-  --color-primary-50: #EBF9FA;
-  --color-primary-100: #D3F2F5;
-  --color-primary-200: #A9E5EB;
-  --color-secondary: #1C1C1C;
+  --color-primary: #AE7714;
+  --color-primary-dark: #8A5C0B;
+  --color-primary-50: #FBF6EC;
+  --color-primary-100: #F5EAD3;
+  --color-primary-200: #E8D2A2;
+  --color-secondary: #161412;
   --color-secondary-light: #333333;
   --color-dark: #1C1C1C;
-  --color-gold: #D4A373;
+  --color-gold: #D9B25F;
   --color-bronze: #B6713E;
   --color-accent: #E95200;
   --color-sale: #DB0000;
@@ -57,7 +57,7 @@
   @media (min-width: 1024px) { .section { padding-block: 52px; } }
 
   /* Section backgrounds */
-  .bg-soft { background: linear-gradient(180deg, #F1FAFB 0%, #FFFFFF 100%); }
+  .bg-soft { background: linear-gradient(180deg, #FBF7EF 0%, #FFFFFF 100%); }
   .bg-cool { background: #F7F8FA; }
   .bg-pattern {
     background-color: #ffffff;
@@ -173,3 +173,12 @@
 @media (prefers-reduced-motion: reduce) {
   .marquee, .ticker { animation: none; }
 }
+
+/* ---------- Gold finish ---------- */
+.gold-grad { background-image: linear-gradient(135deg, #D2A645 0%, #AE7714 55%, #8A5C0B 100%); }
+.gold-text { background: linear-gradient(135deg, #E6C46E, #B98222 60%, #D9B25F); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.gold-line { height: 2px; background: linear-gradient(90deg, transparent, #D2A645 20%, #F0D592 50%, #D2A645 80%, transparent); }
+
+/* Solid AntD primary buttons get the same metallic gradient as the logo */
+.ant-btn.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled) { background-image: linear-gradient(135deg, #C99A3B 0%, #AE7714 55%, #8F600E 100%); border-color: transparent; }
+.ant-btn.ant-btn-color-primary.ant-btn-variant-solid:not(:disabled):hover { background-image: linear-gradient(135deg, #D8AB4C 0%, #B98222 55%, #9A6912 100%); }

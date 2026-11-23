@@ -6,20 +6,22 @@ import StoreHeading from '../components/shop/StoreHeading'
 import { OrderItems, OrderTimeline, StatusTag } from '../components/shop/OrderView'
 import { fmtDate } from '../utils/search'
 import { useShop } from '../store/shopContext'
+import { trackOrder } from '../api'
 import { company } from '../data/content'
 import { inr } from '../utils/pricing'
 
 export default function TrackOrder() {
   const { orders } = useShop()
   const [result, setResult] = useState(null)
-  const [missing, setMissing] = useState(false)
+  const [missing, setMissing] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  // Looks up orders saved on this device. Replace with GET /orders/track when the API is ready.
-  const find = ({ id, mobile }) => {
-    const key = id.trim().toUpperCase().replace(/^#/, '')
-    const o = orders.find((x) => x.id === key && x.customer.mobile === mobile.trim())
-    setResult(o || null)
-    setMissing(!o)
+  const find = async ({ id, mobile }) => {
+    setLoading(true)
+    const res = await trackOrder(id.trim().toUpperCase().replace(/^#/, ''), mobile.trim())
+    setLoading(false)
+    setResult(res.ok ? res.order : null)
+    setMissing(res.ok ? '' : res.message)
   }
 
   return (
@@ -36,7 +38,7 @@ export default function TrackOrder() {
               <Form.Item name="mobile" label="Mobile number" rules={[{ required: true, message: 'Please enter your mobile number' }, { pattern: /^[6-9][0-9]{9}$/, message: 'Enter a valid 10 digit number' }]}>
                 <Input size="large" maxLength={10} inputMode="numeric" prefix={<span className="text-body">+91</span>} />
               </Form.Item>
-              <Button type="primary" htmlType="submit" size="large" block>Track order</Button>
+              <Button type="primary" htmlType="submit" size="large" block loading={loading}>Track order</Button>
             </Form>
             {orders.length > 0 && (
               <p className="mt-4 text-xs">Or see all your orders in <Link to="/orders" className="font-bold text-primary-dark">My Orders</Link></p>
@@ -49,7 +51,7 @@ export default function TrackOrder() {
                 type="warning"
                 showIcon
                 title="Order not found"
-                description={<>Please check the order ID and mobile number. Need help? Call us at <a href={`tel:${company.phoneRaw}`} className="font-bold">{company.phone}</a>.</>}
+                description={<>{missing} Need help? Call us at <a href={`tel:${company.phoneRaw}`} className="font-bold">{company.phone}</a>.</>}
               />
             )}
             {result && (

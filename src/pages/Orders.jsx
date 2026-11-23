@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Empty, Collapse, Popconfirm } from 'antd'
 import StoreHeading from '../components/shop/StoreHeading'
@@ -9,7 +10,13 @@ import { useShop } from '../store/shopContext'
 import { inr } from '../utils/pricing'
 
 export default function Orders() {
-  const { orders, cancelOrder, user } = useShop()
+  const { orders, cancelOrder, user, loadMyOrders } = useShop()
+
+  // Logged-in customers get their latest orders and statuses from the server
+  useEffect(() => {
+    if (user) loadMyOrders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   return (
     <>
@@ -56,7 +63,7 @@ export default function Orders() {
                     <OrderItems order={o} />
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm">
                       <p>
-                        Payment: <b className="text-heading">{o.payment === 'cod' ? 'Cash on delivery' : 'Razorpay (paid)'}</b> · Deliver to {o.address.city} {o.address.pincode}
+                        Payment: <b className="text-heading">{o.payment === 'cod' ? 'Cash on delivery' : o.paymentStatus === 'paid' ? 'Razorpay (paid)' : 'Razorpay (pending)'}</b> · Deliver to {o.address.city} {o.address.pincode}
                       </p>
                       <div className="flex gap-2">
                         <Link to={`/order-success/${o.id}`}><Button size="small">Details</Button></Link>

@@ -39,10 +39,10 @@ function HeroBanners() {
                 <img src={photo(s.img, 1400)} alt="" loading={i === 0 ? 'eager' : 'lazy'} className="absolute inset-0 h-full w-full object-cover transition-transform duration-[2s] group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-transparent" />
                 <div className="relative flex h-full max-w-lg flex-col justify-center px-6 sm:px-10">
-                  <span className="w-fit rounded bg-accent px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white">{s.tag}</span>
+                  <span className="w-fit rounded gold-grad px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white">{s.tag}</span>
                   <h1 className="mt-3 text-[24px] font-extrabold leading-[1.15] !text-white sm:text-[34px] lg:text-[42px]">{s.title}</h1>
                   <p className="mt-2 hidden text-[15px] text-white/85 sm:block">{s.text}</p>
-                  <span className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white transition-colors group-hover:bg-primary-dark">
+                  <span className="mt-4 inline-flex w-fit items-center gap-2 rounded-lg gold-grad px-5 py-2.5 text-sm font-bold text-white shadow-lg transition group-hover:brightness-110">
                     {s.cta.label} <ArrowRight size={16} />
                   </span>
                 </div>
