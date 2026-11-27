@@ -25,6 +25,6 @@ dist-ssr
 
 # Local settings
 .env
+.env.*
+!.env.example
 
-# The backend now lives in its own repo (eshop.Grandeurbath_backend, local folder ../grandeurbath-backend)
-/server/

@@ -1,7 +1,11 @@
-// Calls to the Express backend in /server. Every function resolves to { ok, ... } or throws on network failure
-// (getProducts only), so pages can show the backend's message to the customer.
+// Calls to the backend API (separate repo eshop.Grandeurbath_backend). Every function resolves to { ok, ... } or throws
+// on network failure (getProducts only), so pages can show the backend's message to the customer.
 
-const BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '') + '/api'
+// VITE_API_URL overrides the address. Development uses the Vite proxy (/api -> localhost:5000), production builds
+// call the deployed backend.
+const LIVE_API = 'https://eshop-grandeurbath-backend-6sg3.vercel.app'
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? LIVE_API : '')
+const BASE = API_URL.replace(/\/$/, '') + '/api'
 const TOKEN_KEY = 'gb-token'
 
 export const getToken = () => {

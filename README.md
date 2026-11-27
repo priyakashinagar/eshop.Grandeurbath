@@ -20,8 +20,9 @@ Without a backend the site still opens with sample products, but login, orders a
 npm run build        # vite build + pre-rendered policy pages
 ```
 
-- Set `VITE_API_URL` in Vercel (Project > Settings > Environment Variables) to the deployed backend address,
-  then redeploy. Add the website address to the backend's `CORS_ORIGINS`.
+- Production builds call the live backend `https://eshop-grandeurbath-backend-6sg3.vercel.app` (set in
+  `src/api/index.js`). To use another backend, set `VITE_API_URL` in Vercel (Project > Settings > Environment
+  Variables) and redeploy.
 - `vercel.json` sends every route to the app and serves the pre-rendered policy pages at clean URLs.
 
 ## Policy pages for Razorpay
