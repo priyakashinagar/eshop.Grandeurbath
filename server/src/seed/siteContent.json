@@ -1,0 +1,491 @@
+{
+  "company": {
+    "brand": "Grandeur Bath",
+    "legal": "Ishan Tubes Private Limited",
+    "phone": "+91 88263 77525",
+    "phoneRaw": "+918826377525",
+    "whatsapp": "918826377525",
+    "email": "info@grandeurbath.com",
+    "address": "100, Prakash Industrial Estate, Near Raj Bagh Metro Station, Sahibabad, Ghaziabad, Uttar Pradesh",
+    "gstin": "09AACC19122J1ZE",
+    "socials": {
+      "instagram": "",
+      "facebook": "",
+      "linkedin": "",
+      "youtube": ""
+    },
+    "mapQuery": "Prakash Industrial Estate Sahibabad Ghaziabad"
+  },
+  "testimonials": [
+    {
+      "name": "Rajesh Mehta",
+      "role": "Owner, Private Villa, Noida",
+      "image": "photo-1507003211169-0a1dd7228f2d",
+      "text": "Grandeur Bath gave us a room-wise quotation for all five bathrooms. The H2Okinetic showers feel amazing and delivery was on time.",
+      "rating": 5
+    },
+    {
+      "name": "Priya Sharma",
+      "role": "Purchase Head, Boutique Hotel Group",
+      "image": "photo-1573496359142-b8d87734a5a2",
+      "text": "We fitted 64 guest rooms with their package. Clear pricing, genuine products and quick help whenever our site team needed it.",
+      "rating": 5
+    },
+    {
+      "name": "Amit Verma",
+      "role": "Architect, Verma Design Studio",
+      "image": "photo-1472099645785-5658abf4ff4e",
+      "text": "I recommend them to my clients because the finishes match the samples exactly and the after-sales support is reliable.",
+      "rating": 5
+    },
+    {
+      "name": "Neha Kapoor",
+      "role": "Interior Designer, Delhi",
+      "image": "photo-1580489944761-15a19d654956",
+      "text": "Beautiful range of faucets and showers. Their team helps choose the right valves and trims so installation goes smoothly.",
+      "rating": 5
+    }
+  ],
+  "stats": [
+    {
+      "value": "15+",
+      "label": "Years of experience"
+    },
+    {
+      "value": "500+",
+      "label": "Projects delivered"
+    },
+    {
+      "value": "120+",
+      "label": "Hotels and resorts"
+    },
+    {
+      "value": "2000+",
+      "label": "Products in range"
+    }
+  ],
+  "whyUs": [
+    {
+      "icon": "guarantee",
+      "color": "green",
+      "title": "100% genuine products",
+      "text": "Sourced directly with full manufacturer warranty."
+    },
+    {
+      "icon": "discount",
+      "color": "blue",
+      "title": "Hotel project pricing",
+      "text": "Special room-wise pricing for hotels and builders."
+    },
+    {
+      "icon": "delivery",
+      "color": "orange",
+      "title": "Safe delivery",
+      "text": "Careful packing and on-time delivery to your site."
+    },
+    {
+      "icon": "tools",
+      "color": "purple",
+      "title": "Installation support",
+      "text": "Guidance for plumbers and site teams."
+    },
+    {
+      "icon": "receipt",
+      "color": "teal",
+      "title": "GST invoice",
+      "text": "Proper GST invoices and clear quotations."
+    },
+    {
+      "icon": "headset",
+      "color": "navy",
+      "title": "After-sales service",
+      "text": "Quick help with spares and warranty claims."
+    }
+  ],
+  "gallery": [
+    {
+      "img": "photo-1600566752355-35792bedcfea",
+      "title": "Modern master bath",
+      "place": "Private villa, Noida"
+    },
+    {
+      "img": "photo-1564540583246-934409427776",
+      "title": "Marble twin vanity",
+      "place": "Penthouse, Gurugram"
+    },
+    {
+      "img": "photo-1582719478250-c89cae4dc85b",
+      "title": "Boutique hotel suites",
+      "place": "Hotel project, Jaipur"
+    },
+    {
+      "img": "photo-1595514535415-dae8580c416c",
+      "title": "Matte black basins",
+      "place": "Residence, Delhi"
+    },
+    {
+      "img": "photo-1542314831-068cd1dbfeeb",
+      "title": "Resort bathrooms",
+      "place": "Resort project, Goa"
+    },
+    {
+      "img": "photo-1604709177225-055f99402ea3",
+      "title": "Guest bathroom",
+      "place": "Apartment, Ghaziabad"
+    },
+    {
+      "img": "photo-1631889993959-41b4e9c6e3c5",
+      "title": "Wall-hung WC and tub",
+      "place": "Residence, Ghaziabad"
+    },
+    {
+      "img": "photo-1629079447777-1e605162dc8d",
+      "title": "Walk-in shower",
+      "place": "Apartment, Noida"
+    }
+  ],
+  "segments": [
+    {
+      "icon": "spa",
+      "title": "Hotels and Resorts",
+      "img": "photo-1566073771259-6a8506099945",
+      "text": "Durable luxury fittings for guest rooms, spas and public washrooms."
+    },
+    {
+      "icon": "crane",
+      "title": "Builders and Developers",
+      "img": "photo-1600566753190-17f0baa2a6c3",
+      "text": "Bulk supply for apartments and villas with phased delivery."
+    },
+    {
+      "icon": "home",
+      "title": "Homes and Villas",
+      "img": "photo-1600047509807-ba8f99d2cdde",
+      "text": "Design help to pick the right finish for every bathroom."
+    }
+  ],
+  "spaces": [
+    {
+      "title": "Master Bathroom",
+      "icon": "bath",
+      "img": "photo-1603825491103-bd638b1873b0",
+      "text": "Rain showers, tub spouts and statement faucets."
+    },
+    {
+      "title": "Guest Bathroom",
+      "icon": "shower",
+      "img": "photo-1629079447777-1e605162dc8d",
+      "text": "Elegant, durable fittings for everyday use."
+    },
+    {
+      "title": "Kitchen",
+      "icon": "frying-pan",
+      "img": "photo-1556912173-3bb406ef7e77",
+      "text": "Pull-down faucets built for busy kitchens."
+    },
+    {
+      "title": "Hotel Suites",
+      "icon": "bed",
+      "img": "photo-1631049307264-da0ec9d70304",
+      "text": "Room-wise packages for hotels and resorts."
+    }
+  ],
+  "projectSteps": [
+    {
+      "icon": "ruler",
+      "color": "blue",
+      "title": "Requirement",
+      "text": "Share your drawings or room list with us."
+    },
+    {
+      "icon": "document",
+      "color": "orange",
+      "title": "Room-wise quotation",
+      "text": "Get a quotation for every bathroom and kitchen."
+    },
+    {
+      "icon": "approval",
+      "color": "purple",
+      "title": "Sample approval",
+      "text": "See finishes and approve samples."
+    },
+    {
+      "icon": "package",
+      "color": "teal",
+      "title": "Delivery",
+      "text": "Phased delivery as your site progresses."
+    },
+    {
+      "icon": "wrench",
+      "color": "green",
+      "title": "Installation support",
+      "text": "Our team guides your plumbers on site."
+    }
+  ],
+  "faqs": [
+    {
+      "category": "orders",
+      "q": "How do I place an order?",
+      "a": "Add products to your cart, click Proceed to checkout, enter your address and choose a payment method. You can checkout as a guest or log in.",
+      "home": false
+    },
+    {
+      "category": "orders",
+      "q": "Can I change my order after placing it?",
+      "a": "Orders can be changed or cancelled before they are shipped. Go to My Orders or call our support team.",
+      "home": false
+    },
+    {
+      "category": "orders",
+      "q": "How do I track my order?",
+      "a": "Use the Track Order page with your order ID and mobile number, or open My Orders if you are logged in.",
+      "home": false
+    },
+    {
+      "category": "payment",
+      "q": "Which payment methods do you accept?",
+      "a": "We accept UPI, debit cards, credit cards, net banking and wallets through Razorpay, and cash on delivery.",
+      "home": false
+    },
+    {
+      "category": "payment",
+      "q": "Is online payment safe?",
+      "a": "Yes. Payments are processed by Razorpay on a secure, PCI DSS compliant gateway. We never store your card details.",
+      "home": false
+    },
+    {
+      "category": "payment",
+      "q": "Is cash on delivery available?",
+      "a": "Yes, cash on delivery is available for orders up to ₹{codLimit} at most pincodes.",
+      "home": false
+    },
+    {
+      "category": "payment",
+      "q": "Will I get a GST invoice?",
+      "a": "Yes. Every order includes a GST invoice. Enter your GSTIN at checkout to claim input tax credit.",
+      "home": false
+    },
+    {
+      "category": "delivery",
+      "q": "What are the delivery charges?",
+      "a": "Delivery is free on orders above ₹{freeAbove}. A flat ₹{deliveryCharge} is charged on smaller orders.",
+      "home": false
+    },
+    {
+      "category": "delivery",
+      "q": "How long does delivery take?",
+      "a": "Delhi NCR orders arrive in 2 to 3 days. Most other cities take 4 to 7 days. Enter your pincode on any product to see the exact date.",
+      "home": false
+    },
+    {
+      "category": "delivery",
+      "q": "Do you deliver large items like bathtubs and water tanks?",
+      "a": "Yes. Large items are shipped with special packing. Our team calls you before delivery to confirm access to the site.",
+      "home": false
+    },
+    {
+      "category": "returns",
+      "q": "What is your return policy?",
+      "a": "Damaged, defective or wrong products can be replaced within {returnDays} days of delivery. See the Return and Refund Policy for details.",
+      "home": false
+    },
+    {
+      "category": "returns",
+      "q": "How long do refunds take?",
+      "a": "Refunds are processed within 5 to 7 working days after we receive and check the returned product.",
+      "home": false
+    },
+    {
+      "category": "projects",
+      "q": "Do you supply to hotels and large projects?",
+      "a": "Yes. We supply luxury bath and kitchen fittings to hotels, resorts, builders and architects with special project pricing and phased delivery.",
+      "home": true
+    },
+    {
+      "category": "projects",
+      "q": "Are all products genuine with warranty?",
+      "a": "Yes. Every product is 100% genuine and comes with the manufacturer warranty and a proper GST invoice.",
+      "home": true
+    },
+    {
+      "category": "projects",
+      "q": "How do I get a quotation?",
+      "a": "Add products to your quote list on this website or share your requirement on call or WhatsApp. We send a room-wise quotation, usually within 24 hours.",
+      "home": true
+    },
+    {
+      "category": "projects",
+      "q": "Do you deliver outside Delhi NCR?",
+      "a": "Yes. We deliver across India with safe packing. Freight is charged as per actual or included in project quotations.",
+      "home": true
+    },
+    {
+      "category": "projects",
+      "q": "Can I see the products before buying?",
+      "a": "Yes. You can visit our Sahibabad office or ask for samples and finish options for project approvals.",
+      "home": true
+    },
+    {
+      "category": "projects",
+      "q": "Do you help with installation?",
+      "a": "Our team guides your plumber or site team on rough-in, concealed parts and trims so the installation is right the first time.",
+      "home": true
+    }
+  ],
+  "policies": [
+    {
+      "slug": "privacy",
+      "title": "Privacy Policy",
+      "sections": [
+        {
+          "heading": "Information we collect",
+          "body": "When you place an order or create an account we collect your name, mobile number, email, delivery address and GSTIN if you provide it. Payment details are entered on Razorpay's secure page and are never stored by {brand}."
+        },
+        {
+          "heading": "How we use it",
+          "body": "We use your details to process and deliver orders, send order updates, provide support and, if you agree, share offers. We do not sell your personal data."
+        },
+        {
+          "heading": "Sharing",
+          "body": "We share only what is needed with courier partners, payment gateways and tax authorities to complete your order and meet legal requirements."
+        },
+        {
+          "heading": "Cookies and storage",
+          "body": "This website stores your cart, wishlist and preferences in your browser so they are available on your next visit."
+        },
+        {
+          "heading": "Your choices",
+          "body": "You can ask us to update or delete your data at any time by writing to {email}."
+        }
+      ]
+    },
+    {
+      "slug": "terms",
+      "title": "Terms and Conditions",
+      "sections": [
+        {
+          "heading": "About these terms",
+          "body": "This website is operated by {legal}. By using the website or placing an order you agree to these terms."
+        },
+        {
+          "heading": "Products and prices",
+          "body": "We try to show accurate product details, images and prices. Colours may vary slightly on screen. All prices are in Indian Rupees and include GST unless stated."
+        },
+        {
+          "heading": "Orders",
+          "body": "An order is confirmed once payment is received or a cash on delivery order is accepted. We may cancel an order if a product is unavailable or a price was listed in error, with a full refund."
+        },
+        {
+          "heading": "Warranty",
+          "body": "Products carry the manufacturer warranty mentioned on the product page, from the date of invoice."
+        },
+        {
+          "heading": "Governing law",
+          "body": "These terms are governed by the laws of India. Courts at Ghaziabad, Uttar Pradesh have jurisdiction."
+        }
+      ]
+    },
+    {
+      "slug": "shipping",
+      "title": "Shipping and Delivery Policy",
+      "sections": [
+        {
+          "heading": "Delivery charges",
+          "body": "Delivery is free on orders above ₹{freeAbove}. Orders below this have a flat delivery charge of ₹{deliveryCharge}."
+        },
+        {
+          "heading": "Delivery time",
+          "body": "Orders are dispatched within 1 to 2 working days. Delhi NCR deliveries take 2 to 3 days and other cities usually 4 to 7 days. Remote areas may take longer."
+        },
+        {
+          "heading": "Large items",
+          "body": "Bathtubs, vanities and water tanks are shipped with special packing. Our team will call you to confirm the delivery date and site access."
+        },
+        {
+          "heading": "Inspection",
+          "body": "Please check the package at delivery. If it is damaged, note it on the delivery slip and contact us within 48 hours with photos."
+        }
+      ]
+    },
+    {
+      "slug": "return-refund",
+      "title": "Return and Refund Policy",
+      "sections": [
+        {
+          "heading": "Replacement window",
+          "body": "Damaged, defective or wrong products can be returned or replaced within {returnDays} days of delivery."
+        },
+        {
+          "heading": "Conditions",
+          "body": "The product must be unused, uninstalled and in its original packing with all parts. Products that are installed, cut or custom ordered cannot be returned unless defective."
+        },
+        {
+          "heading": "How to request",
+          "body": "Go to My Orders or contact us at {phone} or {email} with your order ID and photos of the product."
+        },
+        {
+          "heading": "Refunds",
+          "body": "After we receive and check the product, refunds are made to the original payment method within 5 to 7 working days. Cash on delivery orders are refunded by bank transfer."
+        }
+      ]
+    },
+    {
+      "slug": "cancellation",
+      "title": "Cancellation Policy",
+      "sections": [
+        {
+          "heading": "Before shipping",
+          "body": "You can cancel an order from My Orders before it is shipped. Prepaid orders are refunded in full."
+        },
+        {
+          "heading": "After shipping",
+          "body": "Once shipped, an order cannot be cancelled. You can refuse the delivery or request a return as per the Return and Refund Policy."
+        },
+        {
+          "heading": "Cancellation by us",
+          "body": "We may cancel an order if the product is out of stock, the address is not serviceable or payment fails. You will receive a full refund."
+        }
+      ]
+    }
+  ],
+  "combos": [
+    {
+      "title": "Complete Shower Set",
+      "text": "Rain shower, shower arm and hand shower",
+      "items": [
+        "ISH1118",
+        "RP49139",
+        "S777"
+      ],
+      "extra": 8
+    },
+    {
+      "title": "Bathtub Starter Kit",
+      "text": "Freestanding tub with tub spout and trim",
+      "items": [
+        "GB-FT1500",
+        "ITS62339",
+        "T853339"
+      ],
+      "extra": 5
+    },
+    {
+      "title": "Tank Plumbing Pack",
+      "text": "1000 L tank with CPVC pipes and elbows",
+      "items": [
+        "AQ-OT1000",
+        "IT-CP25",
+        "IT-EL25"
+      ],
+      "extra": 6
+    }
+  ],
+  "popularSearches": [
+    "Rain shower",
+    "Bathtub",
+    "1000 L tank",
+    "CPVC pipe",
+    "Angle valve",
+    "Kitchen sink"
+  ]
+}

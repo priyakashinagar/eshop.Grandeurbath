@@ -56,6 +56,23 @@ const orderSchema = new mongoose.Schema(
     statusHistory: [{ _id: false, status: String, at: { type: Date, default: Date.now }, note: String }],
     stockDeducted: { type: Boolean, default: false },
     cancelledAt: Date,
+    deliveredAt: Date,
+    // Customer return request after delivery
+    returnRequest: {
+      status: { type: String, enum: ['requested', 'approved', 'rejected', 'received', 'refunded'] },
+      reason: String,
+      details: String,
+      requestedAt: Date,
+      resolvedAt: Date,
+      adminNote: String,
+    },
+    refund: {
+      status: { type: String, enum: ['pending', 'processed', 'failed'] },
+      amount: Number,
+      razorpayRefundId: String,
+      at: Date,
+    },
+    invoiceNo: String,
   },
   { timestamps: true },
 )
@@ -76,6 +93,10 @@ orderSchema.methods.toPublic = function toPublic() {
     statusHistory: o.statusHistory,
     createdAt: o.createdAt,
     cancelledAt: o.cancelledAt,
+    deliveredAt: o.deliveredAt,
+    returnRequest: o.returnRequest?.status ? o.returnRequest : undefined,
+    refund: o.refund?.status ? o.refund : undefined,
+    invoiceNo: o.invoiceNo,
   }
 }
 

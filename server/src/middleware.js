@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken'
 import { z } from 'zod'
 import { config } from './config.js'
 import { User } from './models/index.js'
+import { setCtxUser } from './context.js'
+import { emit } from './events.js'
 
 export class HttpError extends Error {
   constructor(status, message, details) {
@@ -19,7 +21,10 @@ async function readUser(req) {
   if (!token) return null
   try {
     const payload = jwt.verify(token, config.jwtSecret)
-    return await User.findById(payload.sub)
+    const user = await User.findById(payload.sub)
+    const active = user?.active === false ? null : user
+    setCtxUser(active)
+    return active
   } catch {
     return null
   }
@@ -61,7 +66,8 @@ export const notFound = (req) => {
 }
 
 // Express 5 forwards errors thrown in async handlers here
-export function errorHandler(err, _req, res, _next) {
+export function errorHandler(err, req, res, _next) {
+  res.locals.errorMessage = err?.message
   if (err?.code === 11000) {
     const field = Object.keys(err.keyValue || {})[0] || 'value'
     return res.status(409).json({ ok: false, message: `This ${field} is already in use` })
@@ -69,7 +75,10 @@ export function errorHandler(err, _req, res, _next) {
   if (err?.name === 'CastError') return res.status(400).json({ ok: false, message: 'Invalid id' })
   if (err?.type === 'entity.parse.failed') return res.status(400).json({ ok: false, message: 'Invalid JSON body' })
   const status = err.status || 500
-  if (status >= 500) console.error(err)
+  if (status >= 500) {
+    const stack = err.stack?.split('\n').slice(0, 6).join('\n')
+    emit('system.error', { data: { method: req.method, path: req.originalUrl.split('?')[0], message: err.message, stack } })
+  }
   res.status(status).json({ ok: false, message: status >= 500 && config.isProd ? 'Something went wrong' : err.message, details: err.details })
 }
 

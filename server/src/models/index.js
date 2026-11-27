@@ -30,6 +30,69 @@ export const Setting = model(
     {
       key: { type: String, required: true, unique: true },
       maxWebsiteProducts: { type: Number, default: 0, min: 0 }, // 0 = no limit
+      freeAbove: { type: Number, min: 0 }, // free delivery from this order value
+      deliveryCharge: { type: Number, min: 0 },
+      codLimit: { type: Number, min: 0 },
+      gstRate: { type: Number, min: 0, max: 28 },
+      returnDays: { type: Number, min: 0, max: 60 },
+      unserviceablePincodes: { type: [String], default: [] }, // full pincodes or 2-3 digit prefixes
+      announcement: String, // text for the website's top bar
+    },
+    { timestamps: true },
+  ),
+)
+
+// Top-level groups (Bath Tub, Water Tank...) and their sub-categories
+export const Category = model(
+  'Category',
+  new Schema(
+    {
+      key: { type: String, required: true, unique: true, lowercase: true, trim: true },
+      label: { type: String, required: true, trim: true },
+      parent: { type: String, default: null, index: true }, // group key for sub-categories, null for groups
+      text: String,
+      image: String,
+      art: { kind: String, color: String },
+      order: { type: Number, default: 0 },
+      active: { type: Boolean, default: true },
+    },
+    { timestamps: true },
+  ),
+)
+
+export const Brand = model(
+  'Brand',
+  new Schema(
+    {
+      name: { type: String, required: true, unique: true, trim: true },
+      note: String,
+      color: String,
+      logo: String,
+      order: { type: Number, default: 0 },
+      active: { type: Boolean, default: true },
+    },
+    { timestamps: true },
+  ),
+)
+
+// Home page banners: placement "hero" (main slider) or "side"
+export const Banner = model(
+  'Banner',
+  new Schema(
+    {
+      placement: { type: String, enum: ['hero', 'side'], default: 'hero', index: true },
+      tag: String,
+      title: { type: String, required: true },
+      text: String,
+      image: String,
+      art: { kind: String, color: String },
+      ctaLabel: String,
+      ctaLink: String,
+      bg: String,
+      order: { type: Number, default: 0 },
+      active: { type: Boolean, default: true },
+      startsAt: Date,
+      endsAt: Date,
     },
     { timestamps: true },
   ),

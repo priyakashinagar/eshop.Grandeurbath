@@ -3,6 +3,9 @@ import { z } from 'zod'
 import { Coupon, Enquiry, Order, ORDER_STATUSES, Product, Question, Review, Setting, Subscriber } from '../models/index.js'
 import { HttpError, requireAdmin, validate } from '../middleware.js'
 import { getWebsiteSettings, restoreStock, websiteProducts } from '../services.js'
+import { emit } from '../events.js'
+import { diff } from '../logging.js'
+import { startRefund } from './orders.js'
 
 const r = Router()
 r.use('/admin', requireAdmin)
@@ -17,10 +20,29 @@ r.get('/admin/settings', async (_req, res) => {
   res.json({ ok: true, settings, counts: { allowed: visible, shownOnWebsite: onWebsite.length } })
 })
 
-r.put('/admin/settings', validate(z.object({ maxWebsiteProducts: z.number().int().min(0).max(100000) })), async (req, res) => {
-  await Setting.updateOne({ key: 'website' }, { $set: { maxWebsiteProducts: req.body.maxWebsiteProducts } }, { upsert: true })
-  res.json({ ok: true, settings: await getWebsiteSettings() })
-})
+// Any field can be sent on its own, e.g. { maxWebsiteProducts: 50 } or { freeAbove: 1499, codLimit: 30000 }
+r.put(
+  '/admin/settings',
+  validate(
+    z.object({
+      maxWebsiteProducts: z.number().int().min(0).max(100000).optional(),
+      freeAbove: z.number().min(0).optional(),
+      deliveryCharge: z.number().min(0).optional(),
+      codLimit: z.number().min(0).optional(),
+      gstRate: z.number().min(0).max(28).optional(),
+      returnDays: z.number().int().min(0).max(60).optional(),
+      unserviceablePincodes: z.array(z.string().trim().regex(/^[0-9]{2,6}$/, 'Use a pincode or its first 2 to 5 digits')).max(5000).optional(),
+      announcement: z.string().trim().max(200).optional(),
+    }),
+  ),
+  async (req, res) => {
+    const before = await getWebsiteSettings()
+    await Setting.updateOne({ key: 'website' }, { $set: req.body }, { upsert: true })
+    const after = await getWebsiteSettings()
+    emit('settings.updated', { entity: { type: 'settings', id: 'website' }, changes: diff(before, after, Object.keys(req.body)) })
+    res.json({ ok: true, settings: after })
+  },
+)
 
 /* ---------- Products ---------- */
 
@@ -70,15 +92,18 @@ r.get('/admin/products', async (req, res) => {
 r.post('/admin/products', validate(productFields), async (req, res) => {
   if (req.body.price > req.body.mrp) throw new HttpError(400, 'Selling price cannot be more than MRP')
   const p = await Product.create({ ...req.body, slug: slugify(`${req.body.name}-${req.body.code}`) })
+  emit('product.created', { entity: { type: 'product', id: p.code }, data: { name: p.name, price: p.price, stock: p.stock, showOnWebsite: p.showOnWebsite } })
   res.status(201).json({ ok: true, product: adminView(p) })
 })
 
 r.patch('/admin/products/:id', validate(productFields.partial()), async (req, res) => {
   const p = await Product.findById(req.params.id)
   if (!p) throw new HttpError(404, 'Product not found')
+  const before = p.toObject()
   Object.assign(p, req.body)
   if (p.price > p.mrp) throw new HttpError(400, 'Selling price cannot be more than MRP')
   await p.save()
+  emit('product.updated', { entity: { type: 'product', id: p.code }, changes: diff(before, p.toObject(), Object.keys(req.body)) })
   res.json({ ok: true, product: adminView(p) })
 })
 
@@ -88,14 +113,17 @@ r.patch(
   validate(z.object({ ids: z.array(z.string().regex(/^[a-f0-9]{24}$/)).min(1).max(1000), showOnWebsite: z.boolean() })),
   async (req, res) => {
     const out = await Product.updateMany({ _id: { $in: req.body.ids } }, { $set: { showOnWebsite: req.body.showOnWebsite } })
+    const codes = (await Product.find({ _id: { $in: req.body.ids } }).select('code')).map((p) => p.code)
+    emit('product.visibility_changed', { entity: { type: 'product', id: codes.length === 1 ? codes[0] : 'many' }, data: { showOnWebsite: req.body.showOnWebsite, codes, updated: out.modifiedCount } })
     res.json({ ok: true, updated: out.modifiedCount })
   },
 )
 
 // Soft delete: hides the product everywhere but keeps it for old orders
 r.delete('/admin/products/:id', async (req, res) => {
-  const p = await Product.findByIdAndUpdate(req.params.id, { active: false, showOnWebsite: false }, { new: true })
+  const p = await Product.findByIdAndUpdate(req.params.id, { active: false, showOnWebsite: false }, { returnDocument: 'after' })
   if (!p) throw new HttpError(404, 'Product not found')
+  emit('product.deleted', { entity: { type: 'product', id: p.code }, data: { name: p.name, soft: true } })
   res.json({ ok: true })
 })
 
@@ -114,6 +142,7 @@ r.patch(
   async (req, res) => {
     const order = await Order.findOne({ orderNo: req.params.id })
     if (!order) throw new HttpError(404, 'Order not found')
+    const from = order.status
     if (order.status === 'cancelled') throw new HttpError(400, 'Cancelled orders cannot be changed')
     if (order.status === 'payment_pending') throw new HttpError(400, 'This order has not been paid yet')
     if (req.body.status === 'cancelled') {
@@ -123,8 +152,13 @@ r.patch(
     }
     order.status = req.body.status
     order.statusHistory.push({ status: req.body.status, note: req.body.note })
-    if (req.body.status === 'delivered' && order.payment === 'cod') order.paymentStatus = 'paid'
+    if (req.body.status === 'delivered') {
+      order.deliveredAt = new Date()
+      if (order.payment === 'cod') order.paymentStatus = 'paid'
+    }
+    if (req.body.status === 'cancelled') await startRefund(order)
     await order.save()
+    emit('order.status_changed', { entity: { type: 'order', id: order.orderNo }, data: { from, to: order.status, note: req.body.note }, changes: { before: { status: from }, after: { status: order.status } }, payload: { order } })
     res.json({ ok: true, order: order.toPublic() })
   },
 )
@@ -143,14 +177,21 @@ const couponFields = z.object({
 })
 
 r.get('/admin/coupons', async (_req, res) => res.json({ ok: true, coupons: await Coupon.find().sort({ createdAt: -1 }) }))
-r.post('/admin/coupons', validate(couponFields), async (req, res) => res.status(201).json({ ok: true, coupon: await Coupon.create(req.body) }))
+r.post('/admin/coupons', validate(couponFields), async (req, res) => {
+  const c = await Coupon.create(req.body)
+  emit('coupon.created', { entity: { type: 'coupon', id: c.code }, data: req.body })
+  res.status(201).json({ ok: true, coupon: c })
+})
 r.patch('/admin/coupons/:id', validate(couponFields.partial()), async (req, res) => {
-  const c = await Coupon.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-  if (!c) throw new HttpError(404, 'Coupon not found')
+  const before = await Coupon.findById(req.params.id).lean()
+  if (!before) throw new HttpError(404, 'Coupon not found')
+  const c = await Coupon.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after', runValidators: true })
+  emit('coupon.updated', { entity: { type: 'coupon', id: c.code }, changes: diff(before, c.toObject(), Object.keys(req.body)) })
   res.json({ ok: true, coupon: c })
 })
 r.delete('/admin/coupons/:id', async (req, res) => {
-  await Coupon.findByIdAndDelete(req.params.id)
+  const c = await Coupon.findByIdAndDelete(req.params.id)
+  if (c) emit('coupon.deleted', { entity: { type: 'coupon', id: c.code } })
   res.json({ ok: true })
 })
 
@@ -158,23 +199,26 @@ r.delete('/admin/coupons/:id', async (req, res) => {
 
 r.get('/admin/enquiries', async (_req, res) => res.json({ ok: true, enquiries: await Enquiry.find().sort({ createdAt: -1 }).limit(500) }))
 r.patch('/admin/enquiries/:id', validate(z.object({ status: z.enum(['new', 'contacted', 'closed']) })), async (req, res) => {
-  const e = await Enquiry.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  const e = await Enquiry.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' })
   if (!e) throw new HttpError(404, 'Enquiry not found')
+  emit('enquiry.updated', { entity: { type: 'enquiry', id: e._id.toString() }, data: { status: e.status } })
   res.json({ ok: true, enquiry: e })
 })
 
 r.get('/admin/subscribers', async (_req, res) => res.json({ ok: true, subscribers: await Subscriber.find().sort({ createdAt: -1 }) }))
 
 r.patch('/admin/reviews/:id', validate(z.object({ approved: z.boolean() })), async (req, res) => {
-  const rv = await Review.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  const rv = await Review.findByIdAndUpdate(req.params.id, req.body, { returnDocument: 'after' })
   if (!rv) throw new HttpError(404, 'Review not found')
+  emit('review.moderated', { entity: { type: 'review', id: rv._id.toString() }, data: { product: rv.product, approved: rv.approved } })
   res.json({ ok: true, review: rv })
 })
 
 r.get('/admin/questions', async (_req, res) => res.json({ ok: true, questions: await Question.find().sort({ a: 1, createdAt: -1 }).limit(500) }))
 r.patch('/admin/questions/:id', validate(z.object({ a: z.string().trim().min(1).max(2000) })), async (req, res) => {
-  const q = await Question.findByIdAndUpdate(req.params.id, { a: req.body.a }, { new: true })
+  const q = await Question.findByIdAndUpdate(req.params.id, { a: req.body.a }, { returnDocument: 'after' })
   if (!q) throw new HttpError(404, 'Question not found')
+  emit('question.answered', { entity: { type: 'question', id: q._id.toString() }, data: { product: q.product } })
   res.json({ ok: true, question: q })
 })
 
