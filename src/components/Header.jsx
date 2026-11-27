@@ -6,15 +6,16 @@ import Logo from './Logo'
 import SearchBox from './shop/SearchBox'
 import FilterDrawer from './shop/FilterDrawer'
 import ProductImage from './shop/ProductImage'
-import { groups, products } from '../data/shop'
+import { groups, products, delivery } from '../data/shop'
 import { company } from '../data/content'
 import { useQuote } from './quoteContext'
 import { useShop } from '../store/shopContext'
 import { inr, summarize } from '../utils/pricing'
 
+// The first line can be changed from the admin panel (store settings > announcement)
 const announcements = [
-  'Festive Sale is live: up to 40% off on bathroom products',
-  'Free shipping on orders above ₹999 · Cash on delivery available',
+  delivery.announcement || 'Festive Sale is live: up to 40% off on bathroom products',
+  `Free shipping on orders above ₹${delivery.freeAbove.toLocaleString('en-IN')} · Cash on delivery available`,
   'Use code WELCOME10 for 10% off on your first order',
 ]
 
@@ -148,6 +149,7 @@ export default function Header() {
     ? [
         { key: 'hi', label: <span className="font-bold text-heading">Hi, {user.name?.split(' ')[0] || 'there'}</span>, disabled: true },
         { type: 'divider' },
+        { key: '/account', label: 'My account', icon: <User size={15} /> },
         { key: '/orders', label: 'My orders', icon: <Package size={15} /> },
         { key: '/wishlist', label: 'Wishlist', icon: <Heart size={15} /> },
         { key: '/compare', label: 'Compare', icon: <LayoutGrid size={15} /> },
@@ -337,6 +339,7 @@ export default function Header() {
           {[
             ['/offers', 'Offers'],
             ['/new-arrivals', 'New Arrivals'],
+            ['/account', 'My Account'],
             ['/orders', 'My Orders'],
             ['/wishlist', 'Wishlist'],
             ['/compare', 'Compare'],

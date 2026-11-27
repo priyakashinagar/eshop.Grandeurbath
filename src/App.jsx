@@ -18,6 +18,8 @@ import OrderSuccess from './pages/OrderSuccess'
 import Orders from './pages/Orders'
 import TrackOrder from './pages/TrackOrder'
 import Login from './pages/Login'
+import Account from './pages/Account'
+import { ForgotPassword, ResetPassword } from './pages/PasswordReset'
 import Wishlist from './pages/Wishlist'
 import Compare from './pages/Compare'
 import FaqPage from './pages/FaqPage'
@@ -88,10 +90,24 @@ export default function App() {
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/track-order" element={<TrackOrder />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/account" element={<Account />} />
                   <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/compare" element={<Compare />} />
                   <Route path="/faq" element={<FaqPage />} />
                   <Route path="/policy/:slug" element={<Policy />} />
+                  {/* Standard policy URLs that payment gateways (Razorpay) and customers look for */}
+                  <Route path="/privacy-policy" element={<Policy slug="privacy" />} />
+                  <Route path="/terms-and-conditions" element={<Policy slug="terms" />} />
+                  <Route path="/terms" element={<Policy slug="terms" />} />
+                  <Route path="/refund-policy" element={<Policy slug="return-refund" />} />
+                  <Route path="/return-policy" element={<Policy slug="return-refund" />} />
+                  <Route path="/cancellation-policy" element={<Policy slug="cancellation" />} />
+                  <Route path="/cancellation-and-refund" element={<Policy slug="return-refund" />} />
+                  <Route path="/shipping-policy" element={<Policy slug="shipping" />} />
+                  <Route path="/contact-us" element={<Contact />} />
+                  <Route path="/about-us" element={<About />} />
                   <Route path="/hospitality" element={<Hospitality />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />

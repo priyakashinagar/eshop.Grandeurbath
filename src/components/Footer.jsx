@@ -40,12 +40,13 @@ const columns = [
   },
 ]
 
+// Links come from the admin panel (content: company.socials); icons without a link are hidden
 const socials = [
-  { Icon: InstagramFilled, label: 'Instagram' },
-  { Icon: FacebookFilled, label: 'Facebook' },
-  { Icon: LinkedinFilled, label: 'LinkedIn' },
-  { Icon: YoutubeFilled, label: 'YouTube' },
-]
+  { key: 'instagram', Icon: InstagramFilled, label: 'Instagram' },
+  { key: 'facebook', Icon: FacebookFilled, label: 'Facebook' },
+  { key: 'linkedin', Icon: LinkedinFilled, label: 'LinkedIn' },
+  { key: 'youtube', Icon: YoutubeFilled, label: 'YouTube' },
+].filter((s) => company.socials?.[s.key])
 
 const year = new Date().getFullYear()
 
@@ -115,13 +116,13 @@ export default function Footer() {
               <li><a href={`mailto:${company.email}`} className="flex gap-2.5 hover:text-gold"><Mail size={17} className="text-gold" /> {company.email}</a></li>
               <li><a href={`https://wa.me/${company.whatsapp}`} target="_blank" rel="noreferrer" className="flex gap-2.5 hover:text-gold"><MessageCircle size={17} className="text-gold" /> WhatsApp us</a></li>
             </ul>
-            <div className="mt-5 flex gap-2.5">
-              {socials.map(({ Icon, label }) => (
-                <a key={label} href="#" aria-label={label} className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-white transition-colors hover:bg-primary">
+            {socials.length > 0 && <div className="mt-5 flex gap-2.5">
+              {socials.map(({ key, Icon, label }) => (
+                <a key={label} href={company.socials[key]} target="_blank" rel="noreferrer" aria-label={label} className="grid h-9 w-9 place-items-center rounded-lg bg-white/10 text-white transition-colors hover:bg-primary">
                   <Icon />
                 </a>
               ))}
-            </div>
+            </div>}
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:col-span-1 lg:col-span-8 lg:grid-cols-4">

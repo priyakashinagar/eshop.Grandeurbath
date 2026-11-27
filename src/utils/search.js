@@ -11,3 +11,5 @@ export const matchProducts = (term) => {
 }
 
 export const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+
+export const addressText = (a) => [a.line1, a.landmark, `${a.city}, ${a.state} ${a.pincode}`].filter(Boolean).join(', ')

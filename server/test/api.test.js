@@ -6,6 +6,14 @@ import request from 'supertest'
 process.env.NODE_ENV = 'test'
 const ADMIN = { email: 'admin@test.local', password: 'admin12345' }
 
+
+// Orders need a logged-in customer
+let buyer
+const makeBuyer = async (app, request) => {
+  const res = await request(app).post('/api/auth/signup').send({ name: 'Test Buyer Account', mobile: '9700000001', email: 'buyer.account@test.local', password: 'buyerpass1' })
+  return { Authorization: `Bearer ${res.body.token}` }
+}
+
 let mongo
 let app
 let mongoose
@@ -19,6 +27,7 @@ before(async () => {
   await connectDb(mongo.getUri())
   await seed({ admin: ADMIN, log: () => {} })
   app = createApp()
+  buyer = await makeBuyer(app, request)
 })
 
 after(async () => {
@@ -99,6 +108,7 @@ describe('orders', () => {
   test('COD order uses server prices and reduces stock', async () => {
     const res = await request(app)
       .post('/api/orders')
+      .set(buyer)
       .send({ items: [{ id: product.id, qty: 2, price: 1 }], customer, address, payment: 'cod', coupon: 'WELCOME10' })
       .expect(201)
     const o = res.body.order
@@ -119,13 +129,18 @@ describe('orders', () => {
     assert.equal(restored.stock, product.stock, 'stock returns on cancel')
   })
 
+  test('guests must log in before ordering', async () => {
+    const res = await request(app).post('/api/orders').send({ items: [{ id: product.id, qty: 1 }], customer, address, payment: 'cod' }).expect(401)
+    assert.equal(res.body.message, 'Please log in to place your order')
+  })
+
   test('cannot order more than stock', async () => {
-    const res = await request(app).post('/api/orders').send({ items: [{ id: product.id, qty: 999 }], customer, address, payment: 'cod' }).expect(409)
+    const res = await request(app).post('/api/orders').set(buyer).send({ items: [{ id: product.id, qty: 999 }], customer, address, payment: 'cod' }).expect(409)
     assert.match(res.body.message, /left|out of stock/)
   })
 
   test('online payment in test mode: pending until verified', async () => {
-    const res = await request(app).post('/api/orders').send({ items: [{ id: product.id, qty: 1 }], customer, address, payment: 'razorpay' }).expect(201)
+    const res = await request(app).post('/api/orders').set(buyer).send({ items: [{ id: product.id, qty: 1 }], customer, address, payment: 'razorpay' }).expect(201)
     assert.equal(res.body.order.status, 'payment_pending')
     assert.equal(res.body.razorpay.testMode, true)
     const before = (await request(app).get(`/api/products/${product.id}`)).body.product.stock
@@ -141,6 +156,7 @@ describe('orders', () => {
     const userToken = await login('priya@test.local', 'secret12')
     const placed = await request(app)
       .post('/api/orders')
+      .set(buyer)
       .set('Authorization', `Bearer ${userToken}`)
       .send({ items: [{ id: product.id, qty: 1 }], customer: { ...customer, mobile: '9822222222' }, address, payment: 'cod' })
       .expect(201)

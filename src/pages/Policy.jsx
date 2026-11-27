@@ -1,11 +1,12 @@
 import { NavLink, useParams } from 'react-router-dom'
 import StoreHeading from '../components/shop/StoreHeading'
 import NotFound from './NotFound'
-import { company } from '../data/content'
+import { company, policies as adminPolicies } from '../data/content'
+import { fillText } from '../utils/fillText'
 import { delivery } from '../data/shop'
 
 // Draft policy text. Have it reviewed before going live.
-const policies = {
+const builtIn = {
   privacy: {
     title: 'Privacy Policy',
     sections: [
@@ -38,7 +39,7 @@ const policies = {
   'return-refund': {
     title: 'Return and Refund Policy',
     sections: [
-      ['Replacement window', 'Damaged, defective or wrong products can be returned or replaced within 7 days of delivery.'],
+      ['Replacement window', `Damaged, defective or wrong products can be returned or replaced within ${delivery.returnDays} days of delivery.`],
       ['Conditions', 'The product must be unused, uninstalled and in its original packing with all parts. Products that are installed, cut or custom ordered cannot be returned unless defective.'],
       ['How to request', `Go to My Orders or contact us at ${company.phone} or ${company.email} with your order ID and photos of the product.`],
       ['Refunds', 'After we receive and check the product, refunds are made to the original payment method within 5 to 7 working days. Cash on delivery orders are refunded by bank transfer.'],
@@ -54,8 +55,15 @@ const policies = {
   },
 }
 
-export default function Policy() {
-  const { slug } = useParams()
+// Pages written in the admin panel win; the text above is only the fallback
+const policies = adminPolicies.length
+  ? Object.fromEntries(adminPolicies.map((p) => [p.slug, { title: p.title, sections: p.sections.map((s) => [s.heading, fillText(s.body)]) }]))
+  : builtIn
+
+// slug comes from /policy/:slug, or is passed directly for the standard URLs (/privacy-policy etc.)
+export default function Policy({ slug: fixedSlug }) {
+  const params = useParams()
+  const slug = fixedSlug || params.slug
   const page = policies[slug]
   if (!page) return <NotFound />
 

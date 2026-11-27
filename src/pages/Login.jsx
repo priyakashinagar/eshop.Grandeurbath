@@ -43,6 +43,7 @@ export default function Login() {
       <Form.Item name="password" label="Password" rules={[{ required: true, message: 'Please enter your password' }]}>
         <Input.Password size="large" placeholder="Your password" autoComplete="current-password" />
       </Form.Item>
+      <p className="-mt-3 mb-4 text-right text-sm"><Link to="/forgot-password" className="font-bold text-primary-dark">Forgot password?</Link></p>
       <Button type="primary" size="large" htmlType="submit" block loading={loading}>Login</Button>
       <p className="mt-4 text-center text-sm">
         New here? <button type="button" onClick={() => { setTab('signup'); setError('') }} className="cursor-pointer font-bold text-primary-dark">Create an account</button>
@@ -88,7 +89,7 @@ export default function Login() {
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-white/75">Prefer not to sign up? You can still <Link to="/checkout" className="font-bold underline">checkout as a guest</Link>.</p>
+            <p className="text-xs text-white/75">An account is needed to place orders. Signing up takes less than a minute.</p>
           </div>
           <div className="p-6 md:p-8">
             <Tabs

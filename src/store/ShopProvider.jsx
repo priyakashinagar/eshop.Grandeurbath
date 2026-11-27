@@ -41,6 +41,17 @@ export default function ShopProvider({ children }) {
   const [coupon, setCoupon] = useStored('gb-coupon', '')
   const [pincodeOpen, setPincodeOpen] = useState(false)
 
+  // Check the saved login once on start: refreshes the profile, or logs out if the token expired or the account was blocked
+  const checked = useRef(false)
+  useEffect(() => {
+    if (checked.current || !storedUser) return
+    checked.current = true
+    api.getMe().then((res) => {
+      if (res.ok) setUser(res.user)
+      else if (res.status === 401) setUser(null)
+    })
+  }, [storedUser, setUser])
+
   // While logged in, keep the cart and wishlist saved on the account (debounced)
   const synced = useRef(Boolean(user))
   useEffect(() => {
@@ -135,6 +146,8 @@ export default function ShopProvider({ children }) {
 
       orders,
       addOrder: (order) => setOrders((list) => [order, ...list.filter((o) => o.id !== order.id)]),
+      updateOrder: (order) => setOrders((list) => (list.some((o) => o.id === order.id) ? list.map((o) => (o.id === order.id ? order : o)) : [order, ...list])),
+      setUser,
       // Server orders replace local copies; guest orders placed on this device are kept
       loadMyOrders: async () => {
         const res = await api.myOrders()

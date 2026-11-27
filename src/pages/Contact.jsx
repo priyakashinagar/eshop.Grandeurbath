@@ -6,11 +6,14 @@ import Faq from '../sections/Faq'
 import { company, photo } from '../data/content'
 import Tilt from '../components/Tilt'
 
+// Address and map come from the admin panel (content: company)
+const mapQuery = company.mapQuery || company.address
+
 const channels = [
   { icon: 'phone', color: 'orange', title: 'Call us', lines: [company.phone, 'Mon to Sat, 10 am - 7 pm'], href: `tel:${company.phoneRaw}` },
   { icon: 'whatsapp', color: 'green', title: 'WhatsApp', lines: [company.phone, 'Send photos and drawings'], href: `https://wa.me/${company.whatsapp}` },
   { icon: 'email', color: 'blue', title: 'Email', lines: [company.email, 'Reply within 24 hours'], href: `mailto:${company.email}` },
-  { icon: 'location', color: 'purple', title: 'Visit us', lines: ['Prakash Industrial Estate', 'Sahibabad, Ghaziabad'], href: 'https://maps.google.com/?q=Prakash+Industrial+Estate+Sahibabad+Ghaziabad' },
+  { icon: 'location', color: 'purple', title: 'Visit us', lines: [company.address.split(',').slice(0, 2).join(','), company.address.split(',').slice(-2).join(',').trim()], href: `https://maps.google.com/?q=${encodeURIComponent(mapQuery)}` },
 ]
 
 export default function Contact() {
@@ -65,7 +68,7 @@ export default function Contact() {
               <div className="flex-1 rounded-2xl overflow-hidden ring-1 ring-line min-h-[280px]">
                 <iframe
                   title="Grandeur Bath office location"
-                  src="https://maps.google.com/maps?q=Prakash%20Industrial%20Estate%20Sahibabad%20Ghaziabad&z=15&output=embed"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`}
                   className="h-full w-full min-h-[280px] border-0"
                   loading="lazy"
                 />

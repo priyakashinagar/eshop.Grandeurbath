@@ -5,8 +5,10 @@ import ProductImage from './ProductImage'
 import { subcategories } from '../../data/shop'
 import { inr } from '../../utils/pricing'
 import { matchProducts } from '../../utils/search'
+import { popularSearches } from '../../data/content'
 
-const popular = ['Rain shower', 'Bathtub', '1000 L tank', 'CPVC pipe', 'Angle valve', 'Kitchen sink']
+// Admin can change these in the panel (content: popularSearches)
+const popular = popularSearches.length ? popularSearches : ['Rain shower', 'Bathtub', '1000 L tank', 'CPVC pipe', 'Angle valve', 'Kitchen sink']
 
 // Header search with live suggestions
 export default function SearchBox({ className = '', autoFocus = false, onDone }) {

@@ -11,7 +11,7 @@ export default function MobileTabBar() {
     { to: '/products', label: 'Shop', Icon: LayoutGrid },
     { to: '/wishlist', label: 'Wishlist', Icon: Heart, count: wishlist.length },
     { to: '/cart', label: 'Cart', Icon: ShoppingCart, count: cartCount },
-    { to: user ? '/orders' : '/login', label: user ? 'Orders' : 'Account', Icon: User },
+    { to: user ? '/account' : '/login', label: 'Account', Icon: User },
   ]
   return (
     <nav aria-label="Quick links" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">

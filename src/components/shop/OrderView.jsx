@@ -42,3 +42,28 @@ export function OrderItems({ order }) {
     </ul>
   )
 }
+
+const returnLabels = { requested: 'Return requested', approved: 'Return approved', rejected: 'Return rejected', received: 'Return received', refunded: 'Refunded' }
+const returnColors = { requested: 'orange', approved: 'blue', rejected: 'red', received: 'cyan', refunded: 'green' }
+
+// Return and refund progress after delivery or cancellation
+export function AfterSaleInfo({ order }) {
+  const rr = order.returnRequest
+  const rf = order.refund
+  if (!rr?.status && !rf?.status) return null
+  return (
+    <div className="space-y-1 rounded-lg bg-soft px-4 py-3 text-sm ring-1 ring-line">
+      {rr?.status && (
+        <p className="flex flex-wrap items-center gap-2">
+          <Tag color={returnColors[rr.status]} className="!m-0 !font-bold">{returnLabels[rr.status]}</Tag>
+          <span>{rr.adminNote || rr.details}</span>
+        </p>
+      )}
+      {rf?.status && (
+        <p>
+          Refund of <b className="text-heading">{inr(rf.amount)}</b>: {rf.status === 'processed' ? 'processed. It reaches your account in 5 to 7 working days.' : rf.status === 'failed' ? 'could not be completed automatically. Our team will process it manually.' : 'in progress.'}
+        </p>
+      )}
+    </div>
+  )
+}

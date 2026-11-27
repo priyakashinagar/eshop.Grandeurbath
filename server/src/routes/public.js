@@ -5,6 +5,7 @@ import { HttpError, optionalAuth, rules, validate } from '../middleware.js'
 import { checkPincode, couponDiscount, findWebsiteProduct, getWebsiteSettings, websiteProducts } from '../services.js'
 import { emit } from '../events.js'
 import { CONTENT_KEYS, getAllContent, getContent } from '../siteContent.js'
+import { paymentMode } from '../config.js'
 
 const r = Router()
 
@@ -117,7 +118,7 @@ r.get('/storefront', async (_req, res) => {
     categories: allCats.filter((c) => !c.parent).map((g) => ({ key: g.key, label: g.label, text: g.text, image: g.image, art: g.art?.kind ? g.art : undefined, subs: allCats.filter((x) => x.parent === g.key).map((x) => ({ key: x.key, label: x.label, image: x.image, art: x.art?.kind ? x.art : undefined })) })),
     brands: brandList,
     banners: { hero: bannerList.filter((b) => b.placement === 'hero'), side: bannerList.filter((b) => b.placement === 'side') },
-    settings: { freeAbove: s.freeAbove, deliveryCharge: s.deliveryCharge, codLimit: s.codLimit, gstRate: s.gstRate, returnDays: s.returnDays, announcement: s.announcement },
+    settings: { freeAbove: s.freeAbove, deliveryCharge: s.deliveryCharge, codLimit: s.codLimit, gstRate: s.gstRate, returnDays: s.returnDays, announcement: s.announcement, paymentMode: paymentMode() },
     coupons: couponList.map((c) => ({ code: c.code, text: c.text, type: c.type, value: c.value, max: c.max, min: c.min })),
     content,
   })
@@ -131,7 +132,7 @@ r.get('/content/:key', async (req, res) => {
 // Public store rules the website shows (delivery, COD, returns, top bar text)
 r.get('/settings', async (_req, res) => {
   const s = await getWebsiteSettings()
-  res.json({ ok: true, settings: { freeAbove: s.freeAbove, deliveryCharge: s.deliveryCharge, codLimit: s.codLimit, gstRate: s.gstRate, returnDays: s.returnDays, announcement: s.announcement } })
+  res.json({ ok: true, settings: { freeAbove: s.freeAbove, deliveryCharge: s.deliveryCharge, codLimit: s.codLimit, gstRate: s.gstRate, returnDays: s.returnDays, announcement: s.announcement, paymentMode: paymentMode() } })
 })
 
 r.get('/products/:id', async (req, res) => {

@@ -9,7 +9,7 @@ import { PincodeChecker } from '../components/shop/PincodeModal'
 import { RatingPill, StockLabel } from '../components/ProductCard'
 import NotFound from './NotFound'
 import { photo } from '../data/content'
-import { findProduct, findSub, products, coupons } from '../data/shop'
+import { findProduct, findSub, products, coupons, delivery } from '../data/shop'
 import { getReviews, addReview, getQuestions, askQuestion } from '../api'
 import { useShop } from '../store/shopContext'
 import { useQuote } from '../components/quoteContext'
@@ -96,29 +96,30 @@ function Specs({ p }) {
   )
 }
 
-// Loads a list for this product from the API once; returns [list, setList, loading]
+// Loads a list for this product from the API once; returns [list, setList, loading, fullResponse]
 function useProductList(load, id, field) {
-  const [state, setState] = useState({ id: null, list: [] })
+  const [state, setState] = useState({ id: null, list: [], meta: null })
   useEffect(() => {
     let live = true
-    load(id).then((res) => live && setState({ id, list: res.ok ? res[field] : [] }))
+    load(id).then((res) => live && setState({ id, list: res.ok ? res[field] : [], meta: res.ok ? res : null }))
     return () => {
       live = false
     }
   }, [load, id, field])
   const setList = (fn) => setState((x) => ({ ...x, list: fn(x.list) }))
-  return [state.list, setList, state.id !== id]
+  return [state.list, setList, state.id !== id, state.meta]
 }
 
 function Reviews({ p }) {
   const { message } = App.useApp()
   const [form] = Form.useForm()
-  const [list, setList, loading] = useProductList(getReviews, p.id, 'reviews')
+  const [list, setList, loading, meta] = useProductList(getReviews, p.id, 'reviews')
   const [sending, setSending] = useState(false)
-  const bars = [5, 4, 3, 2, 1].map((s) => {
-    const share = s === 5 ? 0.62 : s === 4 ? 0.24 : s === 3 ? 0.09 : s === 2 ? 0.03 : 0.02
-    return { s, pct: Math.round(share * 100) }
-  })
+  const [added, setAdded] = useState([]) // ratings posted during this visit
+  // Star breakdown of the written reviews, from the server's real counts
+  const counts = Object.fromEntries([5, 4, 3, 2, 1].map((s) => [s, (meta?.breakdown?.[s] || 0) + added.filter((x) => x === s).length]))
+  const written = Object.values(counts).reduce((a, b) => a + b, 0)
+  const bars = [5, 4, 3, 2, 1].map((s) => ({ s, count: counts[s], pct: written ? Math.round((counts[s] / written) * 100) : 0 }))
 
   return (
     <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
@@ -132,10 +133,11 @@ function Reviews({ p }) {
               <div key={b.s} className="flex items-center gap-2 text-xs font-semibold">
                 <span className="w-6">{b.s}★</span>
                 <Progress percent={b.pct} showInfo={false} size="small" strokeColor="#0D9D00" className="!m-0 flex-1" />
-                <span className="w-8 text-right">{b.pct}%</span>
+                <span className="w-8 text-right">{b.count}</span>
               </div>
             ))}
           </div>
+          <p className="mt-2 text-xs">{written ? `From ${written} written ${written === 1 ? 'review' : 'reviews'}` : 'No written reviews yet'}</p>
         </div>
         <div className="mt-4 rounded-xl p-4 ring-1 ring-line">
           <p className="mb-3 font-bold text-heading">Write a review</p>
@@ -152,6 +154,7 @@ function Reviews({ p }) {
                 return
               }
               setList((x) => [res.review, ...x])
+              setAdded((x) => [...x, res.review.rating])
               form.resetFields()
               message.success('Thank you for your review')
             }}
@@ -401,8 +404,8 @@ function Detail({ p }) {
 
             <ul className="m-0 mt-5 grid list-none grid-cols-3 gap-2 p-0 text-center text-xs font-semibold text-heading">
               <li className="rounded-xl bg-soft p-3 ring-1 ring-line"><ShieldCheck size={22} className="mx-auto mb-1 text-primary-dark" />{p.warranty} warranty</li>
-              <li className="rounded-xl bg-soft p-3 ring-1 ring-line"><RotateCcw size={22} className="mx-auto mb-1 text-primary-dark" />7 day replacement</li>
-              <li className="rounded-xl bg-soft p-3 ring-1 ring-line"><Truck size={22} className="mx-auto mb-1 text-primary-dark" />Free above ₹999</li>
+              <li className="rounded-xl bg-soft p-3 ring-1 ring-line"><RotateCcw size={22} className="mx-auto mb-1 text-primary-dark" />{delivery.returnDays} day replacement</li>
+              <li className="rounded-xl bg-soft p-3 ring-1 ring-line"><Truck size={22} className="mx-auto mb-1 text-primary-dark" />Free above ₹{delivery.freeAbove.toLocaleString('en-IN')}</li>
             </ul>
 
             <div className="mt-6">

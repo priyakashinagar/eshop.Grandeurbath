@@ -12,6 +12,14 @@ process.env.RAZORPAY_WEBHOOK_SECRET = 'whsec_test'
 process.env.UPLOAD_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'gb-uploads-'))
 const ADMIN = { email: 'admin@test.local', password: 'admin12345' }
 
+
+// Orders need a logged-in customer
+let buyer
+const makeBuyer = async (app, request) => {
+  const res = await request(app).post('/api/auth/signup').send({ name: 'Test Buyer Account', mobile: '9700000001', email: 'buyer.account@test.local', password: 'buyerpass1' })
+  return { Authorization: `Bearer ${res.body.token}` }
+}
+
 let mongo, app, mongoose, Order, admin
 
 before(async () => {
@@ -24,6 +32,7 @@ before(async () => {
   await connectDb(mongo.getUri())
   await seed({ admin: ADMIN, log: () => {} })
   app = createApp()
+  buyer = await makeBuyer(app, request)
   const token = (await request(app).post('/api/auth/login').send({ id: ADMIN.email, password: ADMIN.password })).body.token
   admin = { Authorization: `Bearer ${token}` }
 })
@@ -82,9 +91,9 @@ describe('store settings change checkout', () => {
     await request(app).put('/api/admin/settings').set(admin).send({ freeAbove: 100000, deliveryCharge: 150, codLimit: 100, unserviceablePincodes: ['194'] }).expect(200)
 
     assert.equal((await request(app).get('/api/delivery/194101')).body.ok, false)
-    await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 1 }], customer, address: { ...address, pincode: '194101' }, payment: 'razorpay' }).expect(400)
-    await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'cod' }).expect(400)
-    const online = await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'razorpay' }).expect(201)
+    await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 1 }], customer, address: { ...address, pincode: '194101' }, payment: 'razorpay' }).expect(400)
+    await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'cod' }).expect(400)
+    const online = await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'razorpay' }).expect(201)
     assert.equal(online.body.order.summary.shipping, 150)
 
     await request(app).put('/api/admin/settings').set(admin).send({ freeAbove: 999, deliveryCharge: 99, codLimit: 50000, unserviceablePincodes: [] }).expect(200)
@@ -136,7 +145,7 @@ describe('accounts', () => {
 describe('returns, refunds and invoices', () => {
   test('delivered order can be returned, received and refunded', async () => {
     const p = await anyProduct()
-    const placed = (await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 2 }], customer, address, payment: 'cod' }).expect(201)).body.order
+    const placed = (await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 2 }], customer, address, payment: 'cod' }).expect(201)).body.order
     await request(app).post(`/api/orders/${placed.id}/return`).query({ mobile: customer.mobile }).send({ reason: 'damaged', details: 'Box arrived broken' }).expect(400)
 
     await request(app).patch(`/api/admin/orders/${placed.id}/status`).set(admin).send({ status: 'delivered' }).expect(200)
@@ -155,7 +164,7 @@ describe('returns, refunds and invoices', () => {
 
   test('invoice is only for the owner', async () => {
     const p = await anyProduct()
-    const placed = (await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'cod' }).expect(201)).body.order
+    const placed = (await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'cod' }).expect(201)).body.order
     const inv = await request(app).get(`/api/orders/${placed.id}/invoice`).query({ mobile: customer.mobile }).expect(200)
     assert.match(inv.headers['content-type'], /html/)
     assert.match(inv.text, /Tax Invoice/)
@@ -203,7 +212,7 @@ describe('admin tools', () => {
 describe('razorpay webhook', () => {
   test('rejects bad signatures and confirms a pending order', async () => {
     const p = await anyProduct()
-    const placed = (await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'razorpay' }).expect(201)).body.order
+    const placed = (await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 1 }], customer, address, payment: 'razorpay' }).expect(201)).body.order
     await Order.updateOne({ orderNo: placed.id }, { $set: { 'razorpay.orderId': 'order_TEST123' } })
     const body = JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: { id: 'pay_TEST1', order_id: 'order_TEST123' } } } })
 

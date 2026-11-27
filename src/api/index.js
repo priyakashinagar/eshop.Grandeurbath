@@ -47,6 +47,15 @@ export async function getProducts() {
   return res.products
 }
 
+// Store content managed from the admin panel
+export const getCategories = () => call('/categories')
+export const getBrands = () => call('/brands')
+export const getBanners = () => call('/banners')
+export const getStoreSettings = () => call('/settings')
+export const getCoupons = () => call('/coupons')
+// Everything except products in one request: categories, brands, banners, settings, coupons and site content
+export const getStorefront = () => call('/storefront')
+
 export const getReviews = (id) => call(`/products/${encodeURIComponent(id)}/reviews`)
 export const addReview = (id, review) => call(`/products/${encodeURIComponent(id)}/reviews`, { method: 'POST', body: review })
 export const getQuestions = (id) => call(`/products/${encodeURIComponent(id)}/questions`)
@@ -73,6 +82,15 @@ async function withToken(promise) {
 export const signup = ({ name, mobile, email, password }) => withToken(call('/auth/signup', { method: 'POST', body: { name, mobile, email, password } }))
 export const login = ({ id, password }) => withToken(call('/auth/login', { method: 'POST', body: { id, password } }))
 export const getMe = () => call('/me')
+export const updateMe = (data) => call('/me', { method: 'PUT', body: data })
+export const changePassword = (currentPassword, newPassword) => call('/me/password', { method: 'POST', body: { currentPassword, newPassword } })
+export const forgotPassword = (email) => call('/auth/forgot-password', { method: 'POST', body: { email } })
+export const resetPassword = (token, password) => withToken(call('/auth/reset-password', { method: 'POST', body: { token, password } }))
+
+export const getAddresses = () => call('/me/addresses')
+export const addAddress = (a) => call('/me/addresses', { method: 'POST', body: a })
+export const updateAddress = (id, a) => call(`/me/addresses/${encodeURIComponent(id)}`, { method: 'PATCH', body: a })
+export const deleteAddress = (id) => call(`/me/addresses/${encodeURIComponent(id)}`, { method: 'DELETE' })
 
 export const getSavedCart = () => call('/me/cart')
 export const saveCart = (cart, wishlist) => call('/me/cart', { method: 'PUT', body: { cart, wishlist } })
@@ -86,6 +104,11 @@ export const placeOrder = ({ items, customer, address, coupon, payment }) =>
 export const verifyPayment = (orderId, payload) => call(`/orders/${encodeURIComponent(orderId)}/verify-payment`, { method: 'POST', body: payload })
 export const myOrders = () => call('/orders/mine')
 export const trackOrder = (id, mobile) => call('/orders/track', { query: { id, mobile } })
+export const getOrder = (id, mobile) => call(`/orders/${encodeURIComponent(id)}`, { query: mobile ? { mobile } : undefined })
+export const requestReturn = (id, mobile, { reason, details }) =>
+  call(`/orders/${encodeURIComponent(id)}/return`, { method: 'POST', query: mobile ? { mobile } : undefined, body: { reason, details } })
+// Printable GST invoice; the mobile number proves the order belongs to the viewer
+export const invoiceUrl = (order) => `${BASE}/orders/${encodeURIComponent(order.id)}/invoice?mobile=${encodeURIComponent(order.customer.mobile)}`
 export const cancelOrder = (id, mobile) => call(`/orders/${encodeURIComponent(id)}/cancel`, { method: 'POST', query: mobile ? { mobile } : undefined })
 
 /* Enquiries and newsletter */

@@ -6,6 +6,14 @@ import request from 'supertest'
 process.env.NODE_ENV = 'test'
 const ADMIN = { email: 'admin@test.local', password: 'admin12345' }
 
+
+// Orders need a logged-in customer
+let buyer
+const makeBuyer = async (app, request) => {
+  const res = await request(app).post('/api/auth/signup').send({ name: 'Test Buyer Account', mobile: '9700000001', email: 'buyer.account@test.local', password: 'buyerpass1' })
+  return { Authorization: `Bearer ${res.body.token}` }
+}
+
 let mongo, app, mongoose, admin, ApiLog, EventLog, settle
 
 before(async () => {
@@ -24,6 +32,7 @@ before(async () => {
   await connectDb(mongo.getUri())
   await seed({ admin: ADMIN, log: () => {} })
   app = createApp()
+  buyer = await makeBuyer(app, request)
   const token = (await request(app).post('/api/auth/login').send({ id: ADMIN.email, password: ADMIN.password })).body.token
   admin = { Authorization: `Bearer ${token}` }
 })
@@ -51,7 +60,7 @@ describe('API logs', () => {
   test('passwords and tokens never reach the logs', async () => {
     await request(app).post('/api/auth/signup').send({ name: 'Log Tester', mobile: '9833300000', email: 'logs@test.local', password: 'supersecret1' }).expect(201)
     await settle()
-    const log = await ApiLog.findOne({ path: '/api/auth/signup', status: 201 }).lean()
+    const log = await ApiLog.findOne({ path: '/api/auth/signup', status: 201, 'body.email': 'logs@test.local' }).lean()
     assert.equal(log.body.password, '[redacted]')
     assert.equal(log.body.email, 'logs@test.local')
     const all = JSON.stringify(await ApiLog.find().lean()) + JSON.stringify(await EventLog.find().lean())
@@ -82,6 +91,7 @@ describe('event logs', () => {
     const product = (await request(app).get('/api/products')).body.products.find((p) => p.stock > 5 && p.price < 3000)
     const res = await request(app)
       .post('/api/orders')
+      .set(buyer)
       .send({ items: [{ id: product.id, qty: 1 }], customer: { name: 'Event Buyer', mobile: '9844400000', email: 'buyer@test.local' }, address: { line1: '1 Event Road, Block A', city: 'Noida', state: 'Uttar Pradesh', pincode: '201301' }, payment: 'cod' })
       .expect(201)
     const orderId = res.body.order.id
@@ -89,7 +99,7 @@ describe('event logs', () => {
     await settle()
 
     const placed = await EventLog.findOne({ name: 'order.placed', 'entity.id': orderId }).lean()
-    assert.equal(placed.actor.type, 'guest')
+    assert.equal(placed.actor.type, 'customer')
     assert.equal(placed.data.total, res.body.order.summary.total)
     assert.equal(placed.requestId, res.headers['x-request-id'])
     assert.ok(await ApiLog.exists({ requestId: placed.requestId, path: '/api/orders' }))

@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { Button, Empty, Collapse, Popconfirm } from 'antd'
 import StoreHeading from '../components/shop/StoreHeading'
 import ProductImage from '../components/shop/ProductImage'
-import { OrderItems, OrderTimeline, StatusTag } from '../components/shop/OrderView'
+import { OrderItems, OrderTimeline, StatusTag, AfterSaleInfo } from '../components/shop/OrderView'
+import ReturnButton from '../components/shop/ReturnButton'
 import { fmtDate } from '../utils/search'
-import { orderStage } from '../api'
+import { orderStage, invoiceUrl } from '../api'
 import { useShop } from '../store/shopContext'
 import { inr } from '../utils/pricing'
 
@@ -60,6 +61,7 @@ export default function Orders() {
                 children: (
                   <div className="space-y-5">
                     <OrderTimeline order={o} />
+                    <AfterSaleInfo order={o} />
                     <OrderItems order={o} />
                     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm">
                       <p>
@@ -67,6 +69,10 @@ export default function Orders() {
                       </p>
                       <div className="flex gap-2">
                         <Link to={`/order-success/${o.id}`}><Button size="small">Details</Button></Link>
+                        {o.status !== 'payment_pending' && (
+                          <a href={invoiceUrl(o)} target="_blank" rel="noreferrer"><Button size="small">Invoice</Button></a>
+                        )}
+                        <ReturnButton order={o} />
                         {orderStage(o) >= 0 && orderStage(o) < 2 && (
                           <Popconfirm title="Cancel this order?" description="You can cancel before the order is shipped." okText="Cancel order" cancelText="Keep" onConfirm={() => cancelOrder(o.id)}>
                             <Button size="small" danger>Cancel order</Button>

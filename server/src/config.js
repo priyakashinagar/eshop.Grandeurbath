@@ -45,6 +45,14 @@ export const config = {
 
 export const razorpayEnabled = () => Boolean(config.razorpay.keyId && config.razorpay.keySecret)
 
+// 'test' with rzp_test_ keys, 'live' with rzp_live_ keys, 'mock' without keys (development only)
+export const paymentMode = () => (!razorpayEnabled() ? 'mock' : config.razorpay.keyId.startsWith('rzp_test_') ? 'test' : 'live')
+
+if (config.razorpay.keyId && !/^rzp_(test|live)_[A-Za-z0-9]+$/.test(config.razorpay.keyId)) {
+  console.warn('RAZORPAY_KEY_ID does not look like a Razorpay key (expected rzp_test_... or rzp_live_...)')
+}
+if (config.razorpay.keyId && !config.razorpay.keySecret) console.warn('RAZORPAY_KEY_SECRET is empty, online payments stay in mock mode')
+
 if (config.isProd && config.jwtSecret === 'dev-only-secret-change-me') {
   throw new Error('JWT_SECRET must be set in production')
 }

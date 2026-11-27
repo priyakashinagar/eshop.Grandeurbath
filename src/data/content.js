@@ -1,5 +1,6 @@
 // Real photos (Unsplash)
-export const photo = (id, w = 900) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=75`
+// Seeded images are Unsplash ids; images uploaded from the admin panel are full URLs
+export const photo = (id, w = 900) => (/^(https?:)?\/\//.test(id) || id?.startsWith('/') ? id : `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=75`)
 
 export const company = {
   brand: 'Grandeur Bath',
@@ -119,3 +120,27 @@ export const faqs = [
 ]
 
 export const inr = (n) => n.toLocaleString('en-IN')
+
+/* ---------- Content from the backend (GET /api/storefront), applied once in main.jsx ---------- */
+
+export const faqList = [] // every FAQ with its category, for the FAQ page
+export const policies = [] // policy pages: { slug, title, sections: [{ heading, body }] }
+export const popularSearches = []
+
+const fill = (target, list) => Array.isArray(list) && list.length > 0 && target.splice(0, target.length, ...list)
+
+// Arrays and objects are updated in place, so every import sees the admin's content; missing keys keep the defaults
+export function setSiteContent(c = {}) {
+  if (c.company) Object.assign(company, c.company)
+  fill(testimonials, c.testimonials?.map((t) => ({ name: t.name, role: t.role, img: t.image, text: t.text, rating: t.rating ?? 5 })))
+  fill(faqList, c.faqs)
+  fill(faqs, c.faqs?.filter((f) => f.home))
+  fill(stats, c.stats)
+  fill(whyUs, c.whyUs)
+  fill(gallery, c.gallery)
+  fill(segments, c.segments)
+  fill(spaces, c.spaces)
+  fill(projectSteps, c.projectSteps)
+  fill(policies, c.policies)
+  fill(popularSearches, c.popularSearches)
+}

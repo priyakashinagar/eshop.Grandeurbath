@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { createApp } from './app.js'
-import { config } from './config.js'
+import { config, paymentMode } from './config.js'
 import { connectDb } from './db.js'
 import { flushEvents } from './events.js'
 import { flushLogs } from './logging.js'
@@ -24,6 +24,8 @@ if (!uri && !config.isProd) {
 
 const server = createApp().listen(config.port, () => {
   console.log(`Grandeur Bath API running on http://localhost:${config.port}/api`)
+  const mode = paymentMode()
+  console.log(mode === 'test' ? 'Payments: Razorpay TEST mode (no real money)' : mode === 'live' ? 'Payments: Razorpay LIVE mode' : 'Payments: mock mode (no Razorpay keys in .env)')
 })
 
 // Finish open requests and write the remaining logs and events before exiting

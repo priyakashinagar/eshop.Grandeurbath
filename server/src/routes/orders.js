@@ -90,8 +90,9 @@ const orderSchema = z.object({
   payment: z.enum(['cod', 'razorpay']),
 })
 
-// POST /orders: prices, coupon and stock are always re-checked here, never trusted from the browser
-r.post('/orders', orderLimiter, optionalAuth, validate(orderSchema), async (req, res) => {
+// POST /orders: customers must be logged in. Prices, coupon and stock are always re-checked here, never trusted from the browser
+const loginToOrder = (req, _res, next) => (req.user ? next() : next(new HttpError(401, 'Please log in to place your order')))
+r.post('/orders', orderLimiter, optionalAuth, loginToOrder, validate(orderSchema), async (req, res) => {
   const { items, customer, address, coupon, payment } = req.body
 
   const merged = new Map()

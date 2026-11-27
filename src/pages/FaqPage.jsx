@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Collapse, Input, Segmented, Button } from 'antd'
 import { Search, Plus } from 'lucide-react'
 import StoreHeading from '../components/shop/StoreHeading'
-import { faqs as projectFaqs, company } from '../data/content'
+import { faqs as projectFaqs, faqList, company } from '../data/content'
+import { fillText } from '../utils/fillText'
 import { delivery } from '../data/shop'
 
-const sections = [
+const builtIn = [
   {
     key: 'orders',
     label: 'Orders',
@@ -38,12 +39,21 @@ const sections = [
     key: 'returns',
     label: 'Returns',
     items: [
-      { q: 'What is your return policy?', a: 'Damaged, defective or wrong products can be replaced within 7 days of delivery. See the Return and Refund Policy for details.' },
+      { q: 'What is your return policy?', a: `Damaged, defective or wrong products can be replaced within ${delivery.returnDays} days of delivery. See the Return and Refund Policy for details.` },
       { q: 'How long do refunds take?', a: 'Refunds are processed within 5 to 7 working days after we receive and check the returned product.' },
     ],
   },
   { key: 'projects', label: 'Projects', items: projectFaqs },
 ]
+
+const labels = { orders: 'Orders', payment: 'Payment', delivery: 'Shipping', returns: 'Returns', projects: 'Projects' }
+
+// FAQs written in the admin panel win; the list above is only the fallback
+const sections = faqList.length
+  ? Object.entries(labels)
+      .map(([key, label]) => ({ key, label, items: faqList.filter((f) => f.category === key).map((f) => ({ q: f.q, a: fillText(f.a) })) }))
+      .filter((s) => s.items.length)
+  : builtIn
 
 export default function FaqPage() {
   const [tab, setTab] = useState('all')

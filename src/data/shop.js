@@ -1,7 +1,7 @@
 // Store catalogue. Products are loaded from the backend (GET /api/products) in main.jsx;
 // the dummy list below is only used when the API cannot be reached.
 
-export const delivery = { freeAbove: 999, charge: 99, codLimit: 50000, gstRate: 18 }
+export const delivery = { freeAbove: 999, charge: 99, codLimit: 50000, gstRate: 18, returnDays: 7, announcement: '', paymentMode: 'mock' }
 
 // Top-level groups shown in the navigation, each with its sub-categories
 export const groups = [
@@ -60,7 +60,9 @@ export const groups = [
   },
 ]
 
-export const subcategories = groups.flatMap((g) => g.subs.map((s) => ({ ...s, group: g.key, groupLabel: g.label })))
+export const subcategories = []
+const rebuildSubs = () => subcategories.splice(0, subcategories.length, ...groups.flatMap((g) => g.subs.map((s) => ({ ...s, group: g.key, groupLabel: g.label }))))
+rebuildSubs()
 export const findGroup = (key) => groups.find((g) => g.key === key)
 export const findSub = (key) => subcategories.find((s) => s.key === key)
 
@@ -242,3 +244,44 @@ export const indianStates = [
   'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
   'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Lakshadweep',
 ]
+
+// Replaces the built-in store content with what the admin manages in the backend (called once in main.jsx).
+// Arrays are updated in place so every import sees the new values; anything missing keeps its default.
+const fill = (target, list) => list?.length && target.splice(0, target.length, ...list)
+const groupIcons = { bathtub: 'bathtub', 'water-tank': 'water', bathroom: 'shower', plumbing: 'wrench' }
+
+export function setStoreContent({ categories, brands: brandList, banners, settings, coupons: couponList, combos: comboList } = {}) {
+  if (categories?.length) {
+    fill(
+      groups,
+      categories.map((g) => ({
+        key: g.key,
+        label: g.label,
+        text: g.text || '',
+        icon: groupIcons[g.key] || 'layers',
+        img: g.image,
+        art: g.art,
+        subs: (g.subs || []).map((x) => ({ key: x.key, label: x.label, img: x.image, art: x.art })),
+      })),
+    )
+    rebuildSubs()
+  }
+  fill(brands, brandList?.map((b) => ({ name: b.name, note: b.note || '', color: b.color || '#1C1C1C', logo: b.logo })))
+  fill(heroSlides, banners?.hero?.map((b) => ({ img: b.image, tag: b.tag || '', title: b.title, text: b.text || '', cta: { label: b.ctaLabel || 'Shop now', to: b.ctaLink || '/products' } })))
+  fill(sideBanners, banners?.side?.map((b) => ({ title: b.title, text: b.text || '', to: b.ctaLink || '/products', img: b.image, art: b.art, bg: b.bg || 'from-[#FBF5E8] to-[#F1DFB8]' })))
+  fill(coupons, couponList)
+  fill(combos, comboList)
+  if (settings) {
+    Object.assign(delivery, {
+      freeAbove: settings.freeAbove ?? delivery.freeAbove,
+      charge: settings.deliveryCharge ?? delivery.charge,
+      codLimit: settings.codLimit ?? delivery.codLimit,
+      gstRate: settings.gstRate ?? delivery.gstRate,
+      returnDays: settings.returnDays ?? delivery.returnDays,
+      announcement: settings.announcement || '',
+      paymentMode: settings.paymentMode || delivery.paymentMode,
+    })
+    trustBadges[0].text = `On orders above ₹${delivery.freeAbove.toLocaleString('en-IN')}`
+    trustBadges[3].text = `${delivery.returnDays} day replacement`
+  }
+}

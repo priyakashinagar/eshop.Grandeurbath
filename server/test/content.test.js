@@ -6,6 +6,14 @@ import request from 'supertest'
 process.env.NODE_ENV = 'test'
 const ADMIN = { email: 'admin@test.local', password: 'admin12345' }
 
+
+// Orders need a logged-in customer
+let buyer
+const makeBuyer = async (app, request) => {
+  const res = await request(app).post('/api/auth/signup').send({ name: 'Test Buyer Account', mobile: '9700000001', email: 'buyer.account@test.local', password: 'buyerpass1' })
+  return { Authorization: `Bearer ${res.body.token}` }
+}
+
 let mongo, app, mongoose, admin, settle
 
 before(async () => {
@@ -23,6 +31,7 @@ before(async () => {
   await connectDb(mongo.getUri())
   await seed({ admin: ADMIN, log: () => {} })
   app = createApp()
+  buyer = await makeBuyer(app, request)
   admin = { Authorization: `Bearer ${(await request(app).post('/api/auth/login').send({ id: ADMIN.email, password: ADMIN.password })).body.token}` }
 })
 
@@ -78,7 +87,7 @@ describe('storefront and site content', () => {
 
   test('invoice uses the edited company details', async () => {
     const p = (await request(app).get('/api/products')).body.products.find((x) => x.stock > 3 && x.price < 3000)
-    const o = (await request(app).post('/api/orders').send({ items: [{ id: p.id, qty: 1 }], customer: { name: 'Inv Test', mobile: '9855500000', email: 'inv@test.local' }, address: { line1: '9 Invoice Road, Phase 1', city: 'Noida', state: 'Uttar Pradesh', pincode: '201301' }, payment: 'cod' }).expect(201)).body.order
+    const o = (await request(app).post('/api/orders').set(buyer).send({ items: [{ id: p.id, qty: 1 }], customer: { name: 'Inv Test', mobile: '9855500000', email: 'inv@test.local' }, address: { line1: '9 Invoice Road, Phase 1', city: 'Noida', state: 'Uttar Pradesh', pincode: '201301' }, payment: 'cod' }).expect(201)).body.order
     const html = (await request(app).get(`/api/orders/${o.id}/invoice`).query({ mobile: '9855500000' }).expect(200)).text
     assert.match(html, /\+91 99999 11111/)
   })

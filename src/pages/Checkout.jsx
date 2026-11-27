@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Form, Input, Select, Button, Radio, Empty, Modal, Spin, Tag, App } from 'antd'
+import { Form, Input, Button, Radio, Empty, Modal, Spin, Tag, App, Checkbox } from 'antd'
 import { UserRound, MapPin, CreditCard, Lock, CheckCircle2, Wallet, Banknote } from 'lucide-react'
 import StoreHeading from '../components/shop/StoreHeading'
 import ProductImage from '../components/shop/ProductImage'
 import OrderSummary, { CouponBox } from '../components/shop/OrderSummary'
-import { indianStates, delivery } from '../data/shop'
-import { checkPincode, placeOrder, payWithRazorpay } from '../api'
+import { delivery } from '../data/shop'
+import AddressFields from '../components/shop/AddressFields'
+import { addressText } from '../utils/search'
+import { checkPincode, placeOrder, payWithRazorpay, getAddresses, addAddress } from '../api'
 import { useShop } from '../store/shopContext'
 import { inr, summarize } from '../utils/pricing'
 
@@ -35,7 +37,6 @@ export default function Checkout() {
   const [form] = Form.useForm()
   const { message } = App.useApp()
   const { cartRows, coupon, clearCart, user, orders, addOrder, pincode, setPincode } = useShop()
-  const [mode, setMode] = useState(user ? 'user' : 'guest')
   const [payment, setPayment] = useState('razorpay')
   const [placing, setPlacing] = useState(false)
   const [pinInfo, setPinInfo] = useState(pincode)
@@ -43,6 +44,26 @@ export default function Checkout() {
   const codAllowed = s.total <= delivery.codLimit
   const last = orders[0]?.address
   const lastCustomer = orders[0]?.customer
+
+  // Saved addresses for logged-in customers; the default one is filled in automatically
+  const [saved, setSaved] = useState([])
+  const [picked, setPicked] = useState('new')
+  const [saveNew, setSaveNew] = useState(true)
+  const pick = (a) => {
+    setPicked(a?._id || 'new')
+    if (!a) return
+    form.setFieldsValue({ line1: a.line1, landmark: a.landmark, city: a.city, state: a.state, pincode: a.pincode, gstin: a.gstin })
+    checkPincode(a.pincode).then((res) => res.ok && setPinInfo(res))
+  }
+  useEffect(() => {
+    if (!user) return
+    getAddresses().then((res) => {
+      if (!res.ok || !res.addresses.length) return
+      setSaved(res.addresses)
+      pick(res.addresses.find((a) => a.isDefault) || res.addresses[0])
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   if (!cartRows.length) {
     return (
@@ -52,6 +73,29 @@ export default function Checkout() {
           <Empty description="Your cart is empty, add products to checkout">
             <Link to="/products"><Button type="primary" size="large">Browse products</Button></Link>
           </Empty>
+        </section>
+      </>
+    )
+  }
+
+  // Orders and payments need an account; the cart is kept while the customer logs in
+  if (!user) {
+    return (
+      <>
+        <StoreHeading title="Checkout" crumbs={[{ label: 'Cart', to: '/cart' }, { label: 'Checkout' }]} />
+        <section className="bg-cool py-10 md:py-14">
+          <div className="container-x">
+            <div className="mx-auto max-w-lg rounded-2xl border border-line bg-white p-6 text-center md:p-8">
+              <span className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-primary-50 text-primary-dark"><Lock size={26} /></span>
+              <h2 className="text-xl font-bold md:text-2xl">Log in to continue to payment</h2>
+              <p className="mt-2 text-sm">Please log in or create an account to place your order. Your cart ({s.count} {s.count === 1 ? 'item' : 'items'}, {inr(s.total)}) is saved.</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <Link to="/login?from=/checkout"><Button type="primary" size="large" block>Login</Button></Link>
+                <Link to="/login?tab=signup&from=/checkout"><Button size="large" block>Create account</Button></Link>
+              </div>
+              <Link to="/cart" className="mt-4 inline-block text-sm font-bold text-primary-dark">Back to cart</Link>
+            </div>
+          </div>
         </section>
       </>
     )
@@ -80,6 +124,7 @@ export default function Checkout() {
     if (!res.ok) {
       setPlacing(false)
       message.error(res.message)
+      if (res.status === 401) navigate('/login?from=/checkout') // session expired
       return
     }
 
@@ -96,6 +141,9 @@ export default function Checkout() {
     }
 
     setPlacing(false)
+    if (user && picked === 'new' && saveNew) {
+      addAddress({ label: saved.length ? 'Other' : 'Home', line1: v.line1, landmark: v.landmark || undefined, city: v.city, state: v.state, pincode: v.pincode, gstin: v.gstin || undefined })
+    }
     addOrder(order)
     clearCart()
     navigate(`/order-success/${order.id}`, { replace: true })
@@ -126,21 +174,8 @@ export default function Checkout() {
           className="container-x grid gap-6 lg:grid-cols-[1fr_400px]"
         >
           <div className="space-y-4">
-            <Step n={1} icon={UserRound} title="Login or guest checkout" done={!!user || mode === 'guest'}>
-              {user ? (
-                <p className="text-sm text-heading">Logged in as <b>{user.name}</b> ({user.mobile || user.email})</p>
-              ) : (
-                <Radio.Group value={mode} onChange={(e) => setMode(e.target.value)} className="!grid gap-3 sm:!grid-cols-2">
-                  <Radio value="guest" className="!m-0 rounded-lg !p-3 ring-1 ring-line">
-                    <span className="font-bold text-heading">Continue as guest</span>
-                    <span className="block text-xs">No account needed</span>
-                  </Radio>
-                  <Radio value="login" className="!m-0 rounded-lg !p-3 ring-1 ring-line" onClick={() => navigate('/login?from=/checkout')}>
-                    <span className="font-bold text-heading">Login / Sign up</span>
-                    <span className="block text-xs">Track orders and save addresses</span>
-                  </Radio>
-                </Radio.Group>
-              )}
+            <Step n={1} icon={UserRound} title="Account" done>
+              <p className="text-sm text-heading">Logged in as <b>{user.name}</b> ({user.mobile || user.email})</p>
             </Step>
 
             <Step n={2} icon={MapPin} title="Contact and delivery address">
@@ -154,25 +189,29 @@ export default function Checkout() {
                 <Form.Item name="email" label="Email" className="sm:col-span-2" rules={[{ required: true, message: 'Please enter your email' }, { type: 'email', message: 'Enter a valid email' }]}>
                   <Input size="large" placeholder="For order updates and invoice" autoComplete="email" />
                 </Form.Item>
-                <Form.Item name="line1" label="Address (house no, building, street, area)" className="sm:col-span-2" rules={[{ required: true, message: 'Please enter your address' }]}>
-                  <Input.TextArea rows={2} placeholder="Flat / house no, building, street, area" autoComplete="street-address" />
-                </Form.Item>
-                <Form.Item name="landmark" label="Landmark (optional)">
-                  <Input size="large" placeholder="Near..." />
-                </Form.Item>
-                <Form.Item name="pincode" label="Pincode" rules={[{ required: true, message: 'Please enter pincode' }, { pattern: /^[1-9][0-9]{5}$/, message: 'Enter a valid 6 digit pincode' }]} extra={pinInfo && <span className="text-xs font-semibold text-new">Delivery by {pinInfo.eta} to {pinInfo.city}</span>}>
-                  <Input size="large" maxLength={6} inputMode="numeric" placeholder="6 digit pincode" onChange={onPin} autoComplete="postal-code" />
-                </Form.Item>
-                <Form.Item name="city" label="City" rules={[{ required: true, message: 'Please enter city' }]}>
-                  <Input size="large" placeholder="City" autoComplete="address-level2" />
-                </Form.Item>
-                <Form.Item name="state" label="State" rules={[{ required: true, message: 'Please select state' }]}>
-                  <Select size="large" showSearch placeholder="Select state" options={indianStates.map((x) => ({ value: x, label: x }))} />
-                </Form.Item>
-                <Form.Item name="gstin" label="GSTIN (optional, for business invoice)" className="sm:col-span-2" rules={[{ pattern: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/, message: 'Enter a valid 15 character GSTIN' }]} normalize={(v) => v?.toUpperCase()}>
-                  <Input size="large" maxLength={15} placeholder="22AAAAA0000A1Z5" />
-                </Form.Item>
               </div>
+
+              {saved.length > 0 && (
+                <div className="mb-4">
+                  <p className="mb-2 text-sm font-bold text-heading">Deliver to a saved address</p>
+                  <Radio.Group value={picked} onChange={(e) => pick(saved.find((x) => x._id === e.target.value))} className="!grid w-full gap-2 sm:!grid-cols-2">
+                    {saved.map((a) => (
+                      <Radio key={a._id} value={a._id} className={`!m-0 rounded-lg !p-3 ring-1 ${picked === a._id ? 'bg-primary-50 ring-primary' : 'ring-line'}`}>
+                        <span className="font-bold text-heading">{a.label}{a.isDefault ? ' (default)' : ''}</span>
+                        <span className="block text-xs">{addressText(a)}</span>
+                      </Radio>
+                    ))}
+                    <Radio value="new" className={`!m-0 rounded-lg !p-3 ring-1 ${picked === 'new' ? 'bg-primary-50 ring-primary' : 'ring-line'}`}>
+                      <span className="font-bold text-heading">Use a new address</span>
+                    </Radio>
+                  </Radio.Group>
+                </div>
+              )}
+
+              <AddressFields onPincodeChange={onPin} pincodeExtra={pinInfo && <span className="text-xs font-semibold text-new">Delivery by {pinInfo.eta} to {pinInfo.city}</span>} />
+              {user && picked === 'new' && (
+                <Checkbox checked={saveNew} onChange={(e) => setSaveNew(e.target.checked)} className="!text-sm">Save this address to my account</Checkbox>
+              )}
             </Step>
 
             <Step n={3} icon={Wallet} title="Payment method" extra={<span className="flex items-center gap-1 text-xs font-semibold text-new"><Lock size={13} /> Secure</span>}>
@@ -192,7 +231,13 @@ export default function Checkout() {
                   )
                 })}
               </Radio.Group>
-              <p className="mt-3 text-xs">Payments are processed securely by Razorpay. Until live Razorpay keys are added on the server, online payment runs in test mode.</p>
+              {delivery.paymentMode === 'test' && (
+                <p className="mt-3 rounded-lg bg-[#FFF7E6] px-3 py-2 text-xs text-heading ring-1 ring-[#FFE1A8]">
+                  <b>Razorpay test mode:</b> no real money is charged. Use Razorpay's test cards or test UPI ID from the Razorpay docs (Test Card Details).
+                </p>
+              )}
+              {delivery.paymentMode === 'mock' && <p className="mt-3 text-xs">Razorpay keys are not set on the server yet, so online payment is simulated.</p>}
+              {delivery.paymentMode === 'live' && <p className="mt-3 text-xs">Payments are processed securely by Razorpay. Your card details are never stored on our servers.</p>}
             </Step>
           </div>
 

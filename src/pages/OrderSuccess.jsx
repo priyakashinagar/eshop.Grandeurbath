@@ -1,14 +1,39 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Button, Result } from 'antd'
+import { Button, Result, Spin } from 'antd'
+import { FileText } from 'lucide-react'
 import StoreHeading from '../components/shop/StoreHeading'
-import { OrderItems, OrderTimeline } from '../components/shop/OrderView'
+import { OrderItems, OrderTimeline, AfterSaleInfo } from '../components/shop/OrderView'
+import ReturnButton from '../components/shop/ReturnButton'
 import { useShop } from '../store/shopContext'
+import { getOrder, invoiceUrl } from '../api'
 import { inr } from '../utils/pricing'
 
 export default function OrderSuccess() {
   const { id } = useParams()
-  const { orders } = useShop()
-  const order = orders.find((o) => o.id === id)
+  const { orders, user, updateOrder } = useShop()
+  const local = orders.find((o) => o.id === id)
+  const [loading, setLoading] = useState(Boolean(user))
+
+  // Refresh from the server: latest status for this device's copy, or the order itself for logged-in customers
+  useEffect(() => {
+    const mobile = local?.customer?.mobile
+    if (!user && !mobile) return
+    getOrder(id, user ? undefined : mobile).then((res) => {
+      if (res.ok) updateOrder(res.order)
+      setLoading(false)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, user?.id])
+
+  const order = local
+  if (!order && loading) {
+    return (
+      <section className="container-x grid place-items-center py-20">
+        <Spin size="large" />
+      </section>
+    )
+  }
 
   if (!order) {
     return (
@@ -36,6 +61,7 @@ export default function OrderSuccess() {
               }
             />
             <div className="mt-6"><OrderTimeline order={order} /></div>
+            <div className="mt-4"><AfterSaleInfo order={order} /></div>
             <div className="mt-6 grid gap-6 md:grid-cols-2">
               <div>
                 <p className="mb-1 font-bold text-heading">Items</p>
@@ -56,6 +82,10 @@ export default function OrderSuccess() {
             </div>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link to="/orders"><Button size="large">View my orders</Button></Link>
+              {order.status !== 'payment_pending' && (
+                <a href={invoiceUrl(order)} target="_blank" rel="noreferrer"><Button size="large" icon={<FileText size={16} />}>Download invoice</Button></a>
+              )}
+              <ReturnButton order={order} size="large" />
               <Link to="/products"><Button size="large" type="primary">Continue shopping</Button></Link>
             </div>
           </div>
