@@ -1,12 +1,12 @@
 // Runs after `vite build`. Writes real HTML for the policy and contact pages into dist/, so payment gateways
 // (Razorpay) and search engines can read them without running JavaScript. In a browser, React loads on top
-// and shows the normal page. Text comes from server/src/seed/siteContent.json, the same content the backend seeds.
+// and shows the normal page. Text comes from scripts/policy-content.json (a copy of the backend's seed content).
 import fs from 'node:fs'
 import path from 'node:path'
 
 const dist = path.resolve('dist')
 const shell = fs.readFileSync(path.join(dist, 'index.html'), 'utf8')
-const content = JSON.parse(fs.readFileSync(path.resolve('server/src/seed/siteContent.json'), 'utf8'))
+const content = JSON.parse(fs.readFileSync(path.resolve('scripts/policy-content.json'), 'utf8'))
 const c = content.company
 const values = { brand: c.brand, legal: c.legal, phone: c.phone, email: c.email, freeAbove: '999', deliveryCharge: '99', codLimit: '50,000', returnDays: 7 }
 const fill = (t) => String(t).replace(/\{(\w+)\}/g, (m, k) => values[k] ?? m)
